@@ -35,3 +35,7 @@
 - [x] Generate and integrate multiple inclusive Can Do ATL volunteer illustrations as carousel starter slides.
 - [x] Set the public hero carousel to advance through slides every four seconds.
 - [x] Confirm administrators can upload and manage multiple carousel images from the staff workspace.
+
+## Administrator access update
+
+- [x] Add `mary2000skid@gmail.com` as an invited Can Do ATL administrator.

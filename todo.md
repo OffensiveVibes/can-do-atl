@@ -39,3 +39,7 @@
 ## Administrator access update
 
 - [x] Add `mary2000skid@gmail.com` as an invited Can Do ATL administrator.
+
+## Honest impact update
+
+- [x] Replace mock impact figures with zeroed counts and a message inviting visitors to make the difference.

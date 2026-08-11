@@ -21,7 +21,11 @@ const careNotes = [
   { label: "Care note 02", title: "A good outfit can change how the day begins.", copy: "Closet days keep quality clothing in circulation for class, work, interviews, and all the in-between moments.", context: "Clothing access, shared freely." },
   { label: "Care note 03", title: "Showing up is a skill we share.", copy: "Packed bags, sorted racks, and welcoming tables begin when students decide to make room for one another.", context: "Mutual aid, in motion." },
 ];
-const impactStats = [{ value: "1,240", label: "care packages shared" }, { value: "3,800", label: "clothing items recirculated" }, { value: "290", label: "student volunteers" }];
+const impactStats = [
+  { value: "0", label: "care packages shared so far — you can make the difference" },
+  { value: "0", label: "clothing items recirculated so far — you can make the difference" },
+  { value: "0", label: "student volunteers so far — you can make the difference" },
+];
 const starterSlides = [
   { id: 0, eyebrow: "Student-led mutual aid across ATL", headline: "Small supplies.", accent: "Shared strength.", body: "Can Do ATL brings students together to combat food and clothing insecurity across Georgia Tech, Georgia State, and Kennesaw State.", imageUrl: "/manus-storage/cando-hero-atl_b12524b6.png", imageAlt: "Students sharing food, clothing, and care supplies", volunteerHref: "https://forms.gle/ZnfzPQnNQNVfWABXA", donateHref: "mailto:candoatltm@gmail.com?subject=Can%20Do%20ATL%20Essentials%20Donation" },
   { id: 1, eyebrow: "Food access starts with neighbors", headline: "Stock the shelf.", accent: "Share the strength.", body: "Our student volunteers sort groceries, pack care bags, and make practical support easier to find across campus.", imageUrl: "/manus-storage/cando-carousel-pantry-team_e9767ffb.png", imageAlt: "A diverse group of student volunteers organizing a campus pantry together", volunteerHref: "https://forms.gle/ZnfzPQnNQNVfWABXA", donateHref: "mailto:candoatltm@gmail.com?subject=Can%20Do%20ATL%20Essentials%20Donation" },

@@ -1,0 +1,5 @@
+export const DEFAULT_TEAM_MEMBERS = [
+  { name: "Team member slot 01", role: "Add a role in Admin", bio: "This is an editable placeholder profile. Add a photo, name, role, introduction, and social links from the staff workspace.", imageUrl: null, imageKey: null, linkedinUrl: null, instagramUrl: null, facebookUrl: null, tiktokUrl: null, youtubeUrl: null, websiteUrl: null, position: 0, isPublished: true },
+  { name: "Team member slot 02", role: "Add a role in Admin", bio: "This is an editable placeholder profile. Add a photo, name, role, introduction, and social links from the staff workspace.", imageUrl: null, imageKey: null, linkedinUrl: null, instagramUrl: null, facebookUrl: null, tiktokUrl: null, youtubeUrl: null, websiteUrl: null, position: 1, isPublished: true },
+  { name: "Team member slot 03", role: "Add a role in Admin", bio: "This is an editable placeholder profile. Add a photo, name, role, introduction, and social links from the staff workspace.", imageUrl: null, imageKey: null, linkedinUrl: null, instagramUrl: null, facebookUrl: null, tiktokUrl: null, youtubeUrl: null, websiteUrl: null, position: 2, isPublished: true },
+];

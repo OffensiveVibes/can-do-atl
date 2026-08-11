@@ -49,3 +49,11 @@
 - [x] Add a secure database-backed model and protected API for the three public impact counters.
 - [x] Add an Impact editor to the staff workspace and connect the public impact section to live values.
 - [x] Verify authorized impact updates work and regular visitors cannot modify the counts.
+
+## About Us and team profiles
+
+- [x] Add a secure database-backed model and protected API for configurable team profiles and social links.
+- [x] Build a public About Us page with responsive expandable member profile cards.
+- [x] Add staff tools to create, edit, reorder, publish, and upload images for team profiles.
+- [x] Seed three clearly marked placeholder profiles that administrators can replace.
+- [x] Verify public profile expansion, optional administrator-supplied social-link rendering, and protected team management.

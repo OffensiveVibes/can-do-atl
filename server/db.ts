@@ -7,10 +7,12 @@ import {
   impactMetrics,
   InsertUser,
   siteUpdates,
+  teamMembers,
   users,
 } from "../drizzle/schema";
 import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from "./cms";
 import { DEFAULT_IMPACT_METRICS, type ImpactMetricKey } from "./impact";
+import { DEFAULT_TEAM_MEMBERS } from "./team";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -70,24 +72,26 @@ export async function getUserByOpenId(openId: string) {
 export async function getPublicContent() {
   const db = await requireDb();
   const now = new Date();
-  const [slides, upcomingEvents, updates, metrics] = await Promise.all([
+  const [slides, upcomingEvents, updates, metrics, members] = await Promise.all([
     db.select().from(heroSlides).where(eq(heroSlides.isPublished, true)).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).where(and(eq(events.isPublished, true), gte(events.startsAt, now))).orderBy(asc(events.startsAt)).limit(6),
     db.select().from(siteUpdates).where(eq(siteUpdates.status, "published")).orderBy(desc(siteUpdates.createdAt)).limit(3),
     db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
+    db.select().from(teamMembers).where(eq(teamMembers.isPublished, true)).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
   ]);
-  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS };
+  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS };
 }
 
 export async function getAdminContent() {
   const db = await requireDb();
-  const [slides, allEvents, updates, metrics] = await Promise.all([
+  const [slides, allEvents, updates, metrics, members] = await Promise.all([
     db.select().from(heroSlides).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).orderBy(asc(events.startsAt)),
     db.select().from(siteUpdates).orderBy(desc(siteUpdates.updatedAt)),
     db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
+    db.select().from(teamMembers).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
   ]);
-  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS };
+  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS };
 }
 
 export async function upsertImpactMetrics(metrics: Array<{ metricKey: ImpactMetricKey; value: number; label: string; position: number }>, updatedBy: number) {
@@ -140,6 +144,21 @@ export async function updateHeroSlide(id: number, input: { eyebrow: string; head
 export async function deleteHeroSlide(id: number) {
   const db = await requireDb();
   await db.delete(heroSlides).where(eq(heroSlides.id, id));
+}
+
+export async function createTeamMember(input: { name: string; role: string; bio?: string; imageUrl?: string; imageKey?: string; linkedinUrl?: string; instagramUrl?: string; facebookUrl?: string; tiktokUrl?: string; youtubeUrl?: string; websiteUrl?: string; position: number; isPublished: boolean; createdBy: number }) {
+  const db = await requireDb();
+  await db.insert(teamMembers).values(input);
+}
+
+export async function updateTeamMember(id: number, input: { name: string; role: string; bio?: string; imageUrl?: string; imageKey?: string; linkedinUrl?: string; instagramUrl?: string; facebookUrl?: string; tiktokUrl?: string; youtubeUrl?: string; websiteUrl?: string; position: number; isPublished: boolean }) {
+  const db = await requireDb();
+  await db.update(teamMembers).set(input).where(eq(teamMembers.id, id));
+}
+
+export async function deleteTeamMember(id: number) {
+  const db = await requireDb();
+  await db.delete(teamMembers).where(eq(teamMembers.id, id));
 }
 
 export async function getInviteForEmail(email: string) {

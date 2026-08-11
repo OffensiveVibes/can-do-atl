@@ -7,9 +7,11 @@ import {
   createHeroSlide,
   createOrRefreshInvite,
   createSiteUpdate,
+  createTeamMember,
   deleteEvent,
   deleteHeroSlide,
   deleteSiteUpdate,
+  deleteTeamMember,
   getAdminContent,
   getInviteForEmail,
   getPublicContent,
@@ -19,6 +21,7 @@ import {
   updateHeroSlide,
   upsertImpactMetrics,
   updateSiteUpdate,
+  updateTeamMember,
 } from "../db";
 import { IMPACT_METRIC_KEYS } from "../impact";
 import { editorProcedure, primaryAdministratorProcedure } from "../authorization";
@@ -69,6 +72,22 @@ const impactMetricsInput = z.object({
     }
   }),
 });
+const optionalUrl = z.string().trim().url().max(512).optional().or(z.literal("")).transform((value) => value || undefined);
+const editorTeamMemberInput = z.object({
+  name: z.string().trim().min(2).max(120),
+  role: z.string().trim().min(2).max(160),
+  bio: z.string().trim().max(5000).optional().transform((value) => value || undefined),
+  imageUrl: optionalUrl,
+  imageKey: z.string().trim().max(512).optional().transform((value) => value || undefined),
+  linkedinUrl: optionalUrl,
+  instagramUrl: optionalUrl,
+  facebookUrl: optionalUrl,
+  tiktokUrl: optionalUrl,
+  youtubeUrl: optionalUrl,
+  websiteUrl: optionalUrl,
+  position: z.number().int().min(0).max(999),
+  isPublished: z.boolean(),
+});
 
 function parseImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -92,9 +111,16 @@ export const contentRouter = router({
   updateSlide: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorSlideInput })).mutation(({ input }) => updateHeroSlide(input.id, input.data)),
   deleteSlide: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteHeroSlide(input.id)),
   updateImpactMetrics: editorProcedure.input(impactMetricsInput).mutation(({ ctx, input }) => upsertImpactMetrics(input.metrics, ctx.user.id)),
+  createTeamMember: editorProcedure.input(editorTeamMemberInput).mutation(({ ctx, input }) => createTeamMember({ ...input, createdBy: ctx.user.id })),
+  updateTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorTeamMemberInput })).mutation(({ input }) => updateTeamMember(input.id, input.data)),
+  deleteTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTeamMember(input.id)),
   uploadHeroImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);
     return storagePut(`hero-slides/${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
+  }),
+  uploadTeamImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
+    const image = parseImageDataUrl(input.dataUrl);
+    return storagePut(`team-members/${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
   }),
 });
 

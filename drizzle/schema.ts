@@ -97,6 +97,31 @@ export const impactMetrics = mysqlTable(
   (table) => [index("impactMetrics_position_idx").on(table.position)],
 );
 
+/** Public About Us profiles, controlled through the protected staff workspace. */
+export const teamMembers = mysqlTable(
+  "teamMembers",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    role: varchar("role", { length: 160 }).notNull(),
+    bio: text("bio"),
+    imageUrl: varchar("imageUrl", { length: 512 }),
+    imageKey: varchar("imageKey", { length: 512 }),
+    linkedinUrl: varchar("linkedinUrl", { length: 512 }),
+    instagramUrl: varchar("instagramUrl", { length: 512 }),
+    facebookUrl: varchar("facebookUrl", { length: 512 }),
+    tiktokUrl: varchar("tiktokUrl", { length: 512 }),
+    youtubeUrl: varchar("youtubeUrl", { length: 512 }),
+    websiteUrl: varchar("websiteUrl", { length: 512 }),
+    position: int("position").default(0).notNull(),
+    isPublished: boolean("isPublished").default(true).notNull(),
+    createdBy: int("createdBy").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [index("teamMembers_public_position_idx").on(table.isPublished, table.position)],
+);
+
 /** Primary-administrator managed allow-list for additional administrators. */
 export const adminInvites = mysqlTable(
   "adminInvites",
@@ -117,4 +142,5 @@ export type SiteUpdate = typeof siteUpdates.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type HeroSlide = typeof heroSlides.$inferSelect;
 export type ImpactMetric = typeof impactMetrics.$inferSelect;
+export type TeamMember = typeof teamMembers.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;

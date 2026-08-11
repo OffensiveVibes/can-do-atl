@@ -18,3 +18,8 @@
 
 - [x] Replace footer social-link placeholders with Can Do ATL’s official profiles.
 - [x] Verify the social destinations and document how the primary administrator signs in and edits site content.
+
+## Conversion link update
+
+- [x] Link every volunteer action to the supplied Google Form.
+- [x] Link the public essentials-donation action to a pre-addressed email for Can Do ATL.

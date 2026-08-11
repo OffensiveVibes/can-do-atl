@@ -13,3 +13,8 @@
 - [x] Create a polished administration dashboard for updates, event dates, and hero carousel slides.
 - [x] Implement a timed homepage hero carousel driven by administrator-managed content and images.
 - [x] Verify public content displays correctly and administration routes reject unauthorized users.
+
+## Social profile update
+
+- [x] Replace footer social-link placeholders with Can Do ATL’s official profiles.
+- [x] Verify the social destinations and document how the primary administrator signs in and edits site content.

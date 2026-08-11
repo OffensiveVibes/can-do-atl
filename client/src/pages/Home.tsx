@@ -5,11 +5,11 @@ import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight, Facebook, HandHear
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const socialLinks = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/company/your-page", icon: Linkedin },
-  { label: "TikTok", href: "https://www.tiktok.com/@yourhandle", icon: Music2 },
-  { label: "Instagram", href: "https://www.instagram.com/yourhandle", icon: Instagram },
-  { label: "Facebook", href: "https://www.facebook.com/your-page", icon: Facebook },
-  { label: "YouTube", href: "https://www.youtube.com/@yourchannel", icon: Youtube },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/can-do-atl", icon: Linkedin },
+  { label: "TikTok", href: "https://www.tiktok.com/@candoatl", icon: Music2 },
+  { label: "Instagram", href: "https://www.instagram.com/candoatl/", icon: Instagram },
+  { label: "Facebook (coming soon)", href: undefined, icon: Facebook },
+  { label: "YouTube", href: "https://www.youtube.com/@CanDoATL", icon: Youtube },
 ];
 const initiatives = [
   { number: "01", title: "Food Drives", copy: "Stock campus-facing shelves with groceries students can use right away.", image: "/manus-storage/cando-food-drive_871f5113.png", icon: Soup },

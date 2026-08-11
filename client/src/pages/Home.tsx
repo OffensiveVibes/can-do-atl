@@ -1,25 +1,395 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
-
 /**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Best Practices, Design Guide and Common Pitfalls
+ * Can Do ATL / Neighbourhood Field Notes.
+ * This page combines a civic-zine layout, tactile cream surfaces, forest-green anchors,
+ * and terracotta action cues to make mutual aid feel concrete, local, and approachable.
  */
-export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+import {
+  ArrowRight,
+  CalendarDays,
+  Facebook,
+  HandHeart,
+  Heart,
+  Instagram,
+  Linkedin,
+  MapPin,
+  Music2,
+  Package,
+  Shirt,
+  Soup,
+  Youtube,
+} from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
+const socialLinks = [
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/company/your-page",
+    icon: Linkedin,
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@yourhandle",
+    icon: Music2,
+  },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/yourhandle",
+    icon: Instagram,
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/your-page",
+    icon: Facebook,
+  },
+  {
+    label: "YouTube",
+    href: "https://www.youtube.com/@yourchannel",
+    icon: Youtube,
+  },
+];
+
+const initiatives = [
+  {
+    number: "01",
+    title: "Food Drives",
+    copy: "Stock campus-facing shelves with groceries students can use right away.",
+    image: "/manus-storage/cando-food-drive_871f5113.png",
+    icon: Soup,
+  },
+  {
+    number: "02",
+    title: "Clothing Closet",
+    copy: "Share free, quality clothes for class, work, interviews, and everyday life.",
+    image: "/manus-storage/cando-clothing-closet_0be9460f.png",
+    icon: Shirt,
+  },
+  {
+    number: "03",
+    title: "Community Outreach",
+    copy: "Meet students where they are with pop-ups, partner care packages, and practical resources.",
+    image: "/manus-storage/cando-outreach_ef7007e4.png",
+    icon: HandHeart,
+  },
+];
+
+const storyPrompts = [
+  {
+    label: "Care note 01",
+    title: "A full shelf can steady a week.",
+    copy: "Food drives turn everyday supplies into breathing room—one grocery bag, one meal, one less worry at a time.",
+    context: "Food access, made tangible.",
+  },
+  {
+    label: "Care note 02",
+    title: "A good outfit can change how the day begins.",
+    copy: "Closet days keep quality clothing in circulation for class, work, interviews, and all the in-between moments.",
+    context: "Clothing access, shared freely.",
+  },
+  {
+    label: "Care note 03",
+    title: "Showing up is a skill we share.",
+    copy: "Packed bags, sorted racks, and welcoming tables begin when students decide to make room for one another.",
+    context: "Mutual aid, in motion.",
+  },
+];
+
+const impactStats = [
+  { value: "1,240", label: "care packages shared" },
+  { value: "3,800", label: "clothing items recirculated" },
+  { value: "290", label: "student volunteers" },
+];
+
+const driveDates = [
+  { date: "SEP 12", title: "Fall food drive", campus: "Georgia Tech" },
+  { date: "OCT 03", title: "Closet pop-up", campus: "Georgia State" },
+  { date: "NOV 14", title: "Winter essentials drive", campus: "Kennesaw State" },
+];
+
+function PaperTape({ className = "" }: { className?: string }) {
+  return <span aria-hidden="true" className={`paper-tape ${className}`} />;
+}
+
+export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
+    <div className="min-h-screen overflow-hidden bg-[#F7F3EB] text-[#2C2C2C]">
+      <header className="site-header">
+        <div className="site-shell header-inner">
+          <a className="brand-lockup" href="#top" aria-label="Can Do ATL home">
+            <span className="brand-mark-wrap">
+              <img
+                src="/manus-storage/cando-mark_4f760226.png"
+                alt=""
+                className="brand-mark"
+              />
+            </span>
+            <span className="brand-name">
+              <strong>Can Do</strong>
+              <em>ATL</em>
+            </span>
+          </a>
+
+          <nav className="desktop-nav" aria-label="Primary navigation">
+            <a href="#what-we-do">What we do</a>
+            <a href="#impact">Impact</a>
+            <a href="#get-involved">Get involved</a>
+          </nav>
+
+          <a className="header-action" href="#get-involved">
+            Take action <ArrowRight size={16} strokeWidth={2.4} />
+          </a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section className="hero-section">
+          <div className="site-shell hero-grid">
+            <div className="hero-copy reveal-up">
+              <div className="eyebrow eyebrow-ink">
+                <span className="eyebrow-dot" /> Student-led mutual aid across ATL
+              </div>
+              <h1>
+                Small supplies.
+                <br />
+                <span>Shared strength.</span>
+              </h1>
+              <p className="hero-text">
+                Can Do ATL brings students together to combat food and clothing insecurity across Georgia Tech, Georgia State, and Kennesaw State.
+              </p>
+              <div className="hero-actions" aria-label="Primary actions">
+                <a className="button button-primary" href="#get-involved">
+                  <HandHeart size={19} strokeWidth={2.2} /> Volunteer with us
+                  <ArrowRight size={18} strokeWidth={2.5} />
+                </a>
+                <a className="button button-secondary" href="#get-involved">
+                  <Heart size={19} fill="currentColor" strokeWidth={2} /> Give support
+                </a>
+              </div>
+              <p className="hero-note">Bring what you can. Take what helps.</p>
+              <div className="campus-trail" aria-label="Can Do ATL connects Georgia Tech, Georgia State, and Kennesaw State">
+                <span><b>01</b> Georgia Tech</span><i aria-hidden="true" />
+                <span><b>02</b> Georgia State</span><i aria-hidden="true" />
+                <span><b>03</b> Kennesaw State</span>
+              </div>
+            </div>
+
+            <div className="hero-visual reveal-up" aria-label="Students sharing food and clothing essentials">
+              <div className="hero-orbit orbit-one" aria-hidden="true" />
+              <div className="hero-orbit orbit-two" aria-hidden="true" />
+              <PaperTape className="hero-tape" />
+              <img
+                src="/manus-storage/cando-hero-atl_b12524b6.png"
+                alt="Illustration of students sharing food, clothing, and care supplies"
+                className="hero-illustration"
+              />
+              <div className="hero-pin pin-top">
+                <span>3 campuses</span>
+                <MapPin size={16} />
+              </div>
+              <div className="hero-pin pin-bottom">
+                <span className="pin-burst">✦</span>
+                <span>Care in motion</span>
+              </div>
+            </div>
+          </div>
+          <div className="hero-scroll-label" aria-hidden="true">
+            <span /> scroll to see the work
+          </div>
+        </section>
+
+        <section id="what-we-do" className="initiatives-section section-pad">
+          <div className="site-shell">
+            <div className="section-heading reveal-up">
+              <div>
+                <p className="kicker">What we do</p>
+                <h2>Care is practical.</h2>
+              </div>
+              <p>
+                We mobilize people, supplies, and campus partnerships so a student’s next step can feel a little more possible.
+              </p>
+            </div>
+
+            <div className="initiative-grid">
+              {initiatives.map((initiative, index) => {
+                const Icon = initiative.icon;
+                return (
+                  <article className={`initiative-card card-${index + 1}`} key={initiative.title}>
+                    <div className="initiative-topline">
+                      <span>{initiative.number}</span>
+                      <Icon size={21} strokeWidth={1.8} aria-hidden="true" />
+                    </div>
+                    <img src={initiative.image} alt="" className="initiative-art" />
+                    <div className="initiative-content">
+                      <h3>{initiative.title}</h3>
+                      <p>{initiative.copy}</p>
+                      <a href="#get-involved" className="text-link">
+                        Lend a hand <ArrowRight size={15} />
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="impact" className="impact-section section-pad">
+          <div className="impact-grain" aria-hidden="true" />
+          <div className="site-shell impact-layout">
+            <div className="impact-intro">
+              <p className="kicker kicker-light">Our impact</p>
+              <h2>Every item carries a little more room to breathe.</h2>
+              <p>
+                When a student has food on the table or clothes that feel ready for the day, a community grows stronger.
+              </p>
+              <span className="sample-badge">A growing community, one drive at a time</span>
+              <div className="impact-campus-trail" aria-label="One connected Atlanta campus network">
+                <span>Georgia Tech</span><i aria-hidden="true" /><span>Georgia State</span><i aria-hidden="true" /><span>Kennesaw State</span>
+              </div>
+            </div>
+            <div className="stats-board">
+              {impactStats.map((stat) => (
+                <div className="stat-note" key={stat.label}>
+                  <strong>{stat.value}</strong>
+                  <span>{stat.label}</span>
+                  <i aria-hidden="true" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="drives-section section-pad">
+          <div className="site-shell drives-layout">
+            <div className="drives-sticky-note">
+              <PaperTape className="drives-tape" />
+              <div className="calendar-icon"><CalendarDays size={20} /></div>
+              <p className="kicker">Mark your calendar</p>
+              <h2>Meet us where care is needed.</h2>
+              <p>Plan around the next chance to pack, sort, share, and make a useful difference close to campus.</p>
+            </div>
+            <div className="drive-list" aria-label="Sample upcoming drive dates">
+              {driveDates.map((drive) => (
+                <article className="drive-row" key={drive.date}>
+                  <time>{drive.date}</time>
+                  <div>
+                    <h3>{drive.title}</h3>
+                    <p><MapPin size={15} /> {drive.campus}</p>
+                  </div>
+                  <a href="#get-involved" aria-label={`Learn more about ${drive.title}`}>
+                    <ArrowRight size={21} />
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="stories-section section-pad" aria-labelledby="stories-title">
+          <div className="site-shell stories-layout">
+            <div className="stories-heading">
+              <p className="kicker">The way we show up</p>
+              <h2 id="stories-title">Care moves through people.</h2>
+              <p>
+                Food and clothing access is never a one-person fix. Here is the shared work that keeps care moving across our campuses.
+              </p>
+              <div className="hand-drawn-arrow" aria-hidden="true">↘</div>
+            </div>
+            <Carousel opts={{ loop: true, align: "start" }} className="stories-carousel">
+              <CarouselContent>
+                {storyPrompts.map((story, index) => (
+                  <CarouselItem key={story.label}>
+                    <article className={`story-card story-${index + 1}`}>
+                      <div className="story-card-topline"><span>{story.label}</span><i aria-hidden="true">✦</i></div>
+                      <h3>{story.title}</h3>
+                      <p>{story.copy}</p>
+                      <footer>
+                        <span>{story.context}</span>
+                      </footer>
+                    </article>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <div className="story-controls">
+                <CarouselPrevious className="story-control-prev" />
+                <CarouselNext className="story-control-next" />
+              </div>
+            </Carousel>
+          </div>
+        </section>
+
+        <section id="get-involved" className="action-section section-pad">
+          <div className="site-shell action-panel">
+            <div className="action-copy">
+              <p className="kicker kicker-light">Make room for someone else</p>
+              <h2>What can you carry forward?</h2>
+              <p>Show up for a shift, organize a drive, pass along essentials, or help us keep this campus trail moving.</p>
+            </div>
+            <div className="action-options">
+              <a className="action-option volunteer-option" href="#contact">
+                <span className="option-icon"><HandHeart size={27} /></span>
+                <span>
+                  <strong>Volunteer with us</strong>
+                  <small>Sort, deliver, organize, and welcome</small>
+                </span>
+                <ArrowRight size={23} />
+              </a>
+              <a className="action-option donate-option" href="#contact">
+                <span className="option-icon"><Package size={27} /></span>
+                <span>
+                  <strong>Give essentials</strong>
+                  <small>Fuel food and clothing access</small>
+                </span>
+                <ArrowRight size={23} />
+              </a>
+            </div>
+          </div>
+        </section>
       </main>
+
+      <footer id="contact" className="site-footer">
+        <div className="site-shell footer-main">
+          <div className="footer-brand">
+            <a className="brand-lockup footer-logo" href="#top">
+              <span className="brand-mark-wrap"><img src="/manus-storage/cando-mark_4f760226.png" alt="" className="brand-mark" /></span>
+              <span className="brand-name"><strong>Can Do</strong><em>ATL</em></span>
+            </a>
+            <p>Three campuses, one connected care network, and a shared belief that essentials should never stand in the way of a student’s next step.</p>
+          </div>
+          <div className="footer-column">
+            <p className="footer-label">Our campuses</p>
+            <ul>
+              <li>Georgia Tech</li>
+              <li>Georgia State</li>
+              <li>Kennesaw State</li>
+            </ul>
+          </div>
+          <div className="footer-column footer-socials">
+            <p className="footer-label">Find &amp; share us</p>
+            <div className="social-grid">
+              {socialLinks.map((social) => {
+                const Icon = social.icon;
+                return (
+                  <a key={social.label} href={social.href} target="_blank" rel="noreferrer" aria-label={`Can Do ATL on ${social.label}`}>
+                    <Icon size={19} strokeWidth={1.8} />
+                    <span>{social.label}</span>
+                  </a>
+                );
+              })}
+            </div>
+            <p className="social-helper">Follow the work. Share a drive. Keep the trail moving.</p>
+          </div>
+        </div>
+        <div className="site-shell footer-bottom">
+          <span>© {new Date().getFullYear()} Can Do ATL</span>
+          <span>Built for shared strength.</span>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -5,3 +5,11 @@
 - [x] Run the build and inspect desktop presentation.
 - [x] Inspect mobile presentation after the visual refinement.
 - [x] Package the raw source code for a GitHub handoff and provide usage notes.
+
+## Administrator dashboard extension
+
+- [x] Upgrade the project to use authenticated users and a secure content database.
+- [x] Restrict administration to `candoatltm@gmail.com` and add an invite-only pathway for additional administrators.
+- [x] Create a polished administration dashboard for updates, event dates, and hero carousel slides.
+- [x] Implement a timed homepage hero carousel driven by administrator-managed content and images.
+- [x] Verify public content displays correctly and administration routes reject unauthorized users.

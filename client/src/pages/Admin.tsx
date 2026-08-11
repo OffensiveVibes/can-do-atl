@@ -1,0 +1,225 @@
+import DashboardLayout from "@/components/DashboardLayout";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { startLogin } from "@/const";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
+import { useMemo, useState } from "react";
+import {
+  CalendarDays,
+  Check,
+  ChevronRight,
+  CircleAlert,
+  FileText,
+  ImagePlus,
+  Images,
+  Link as LinkIcon,
+  Loader2,
+  LockKeyhole,
+  MailPlus,
+  MapPin,
+  Pencil,
+  Plus,
+  Save,
+  ShieldCheck,
+  Trash2,
+  Upload,
+  UsersRound,
+  X,
+} from "lucide-react";
+
+type Tab = "events" | "slides" | "updates" | "team";
+type SlideItem = { id: number; eyebrow: string; headline: string; accent: string | null; body: string; imageUrl: string; imageKey: string | null; imageAlt: string; volunteerHref: string | null; donateHref: string | null; position: number; isPublished: boolean };
+type EventItem = { id: number; title: string; campus: string; details: string | null; startsAt: Date; endsAt: Date | null; linkHref: string | null; isPublished: boolean };
+type UpdateItem = { id: number; title: string; body: string; linkLabel: string | null; linkHref: string | null; status: "draft" | "published" };
+
+const primaryImage = "/manus-storage/cando-hero-atl_b12524b6.png";
+
+function toLocalInputValue(value?: Date | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function inputToDate(value: string) {
+  return value ? new Date(value) : undefined;
+}
+
+function readImageFile(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("The selected image could not be read."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function AdminGate() {
+  const { user, loading } = useAuth();
+  const access = trpc.access.status.useQuery(undefined, { enabled: Boolean(user) });
+  const accept = trpc.access.acceptInvitation.useMutation({
+    onSuccess: (result) => {
+      if (result.activated) {
+        toast.success("Access activated. Reloading your workspace…");
+        window.setTimeout(() => window.location.reload(), 550);
+      } else {
+        toast.error("This account does not have an active administrator invitation.");
+      }
+    },
+  });
+
+  if (loading || (user && access.isLoading)) {
+    return <div className="admin-loading"><Loader2 className="animate-spin" /> Loading workspace…</div>;
+  }
+  if (!user) {
+    return (
+      <main className="admin-access-page">
+        <div className="access-paper">
+          <div className="access-icon"><LockKeyhole size={28} /></div>
+          <p className="admin-kicker">Can Do ATL workspace</p>
+          <h1>Sign in to manage the site.</h1>
+          <p>This private space is for the Can Do ATL administrator and invited collaborators only.</p>
+          <button className="admin-button admin-button-primary" onClick={() => startLogin()}>
+            Sign in securely <ChevronRight size={18} />
+          </button>
+          <a href="/" className="admin-back-link">Return to public site</a>
+        </div>
+      </main>
+    );
+  }
+  if (!access.data?.canEdit) {
+    const pending = access.data?.inviteStatus === "pending";
+    return (
+      <main className="admin-access-page">
+        <div className="access-paper">
+          <div className="access-icon"><ShieldCheck size={28} /></div>
+          <p className="admin-kicker">Account access</p>
+          <h1>Your dashboard is invite-only.</h1>
+          <p>
+            {pending
+              ? "An administrator invitation was found for this account. Activate it to enter the workspace."
+              : "Ask the primary Can Do ATL administrator to add your email before attempting to access this workspace."}
+          </p>
+          {pending && (
+            <button className="admin-button admin-button-primary" onClick={() => accept.mutate()} disabled={accept.isPending}>
+              {accept.isPending ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />} Activate invitation
+            </button>
+          )}
+          <a href="/" className="admin-back-link">Return to public site</a>
+        </div>
+      </main>
+    );
+  }
+  return <DashboardLayout><AdminWorkspace primary={access.data.primary} /></DashboardLayout>;
+}
+
+function AdminWorkspace({ primary }: { primary: boolean }) {
+  const [tab, setTab] = useState<Tab>("events");
+  const adminContent = trpc.content.admin.useQuery();
+  const utils = trpc.useUtils();
+  const invalidate = async () => {
+    await Promise.all([utils.content.admin.invalidate(), utils.content.public.invalidate()]);
+  };
+  const counts = useMemo(() => ({
+    events: adminContent.data?.events.filter((event) => event.isPublished).length ?? 0,
+    slides: adminContent.data?.slides.filter((slide) => slide.isPublished).length ?? 0,
+    updates: adminContent.data?.updates.filter((update) => update.status === "published").length ?? 0,
+  }), [adminContent.data]);
+
+  if (adminContent.isLoading) return <div className="admin-loading"><Loader2 className="animate-spin" /> Preparing your content board…</div>;
+  if (adminContent.error) return <div className="admin-loading admin-error"><CircleAlert /> The content board could not load. Refresh and try again.</div>;
+
+  return (
+    <div className="admin-workspace">
+      <header className="admin-topbar">
+        <div>
+          <p className="admin-kicker">Can Do ATL</p>
+          <h1>Content workspace</h1>
+          <p>Publish changes when the work is ready. The public site updates right away.</p>
+        </div>
+        <a className="admin-public-link" href="/" target="_blank" rel="noreferrer">View public site <ChevronRight size={16} /></a>
+      </header>
+
+      <div className="admin-stat-strip">
+        <button onClick={() => setTab("events")} className={tab === "events" ? "active" : ""}><CalendarDays /><span><b>{counts.events}</b> live events</span></button>
+        <button onClick={() => setTab("slides")} className={tab === "slides" ? "active" : ""}><Images /><span><b>{counts.slides}</b> carousel slides</span></button>
+        <button onClick={() => setTab("updates")} className={tab === "updates" ? "active" : ""}><FileText /><span><b>{counts.updates}</b> site updates</span></button>
+      </div>
+
+      <div className="admin-tabs" role="tablist" aria-label="Content areas">
+        <button role="tab" aria-selected={tab === "events"} className={tab === "events" ? "selected" : ""} onClick={() => setTab("events")}><CalendarDays size={16} /> Events</button>
+        <button role="tab" aria-selected={tab === "slides"} className={tab === "slides" ? "selected" : ""} onClick={() => setTab("slides")}><Images size={16} /> Hero carousel</button>
+        <button role="tab" aria-selected={tab === "updates"} className={tab === "updates" ? "selected" : ""} onClick={() => setTab("updates")}><FileText size={16} /> Updates</button>
+        {primary && <button role="tab" aria-selected={tab === "team"} className={tab === "team" ? "selected" : ""} onClick={() => setTab("team")}><UsersRound size={16} /> Admin access</button>}
+      </div>
+
+      {tab === "events" && <EventsBoard events={adminContent.data?.events ?? []} onDone={invalidate} />}
+      {tab === "slides" && <SlidesBoard slides={adminContent.data?.slides ?? []} onDone={invalidate} />}
+      {tab === "updates" && <UpdatesBoard updates={adminContent.data?.updates ?? []} onDone={invalidate} />}
+      {tab === "team" && primary && <TeamBoard />}
+    </div>
+  );
+}
+
+function EventsBoard({ events, onDone }: { events: EventItem[]; onDone: () => Promise<void> }) {
+  const [editing, setEditing] = useState<EventItem | null>(null);
+  const [title, setTitle] = useState("");
+  const [campus, setCampus] = useState("Georgia Tech");
+  const [details, setDetails] = useState("");
+  const [startsAt, setStartsAt] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+  const [linkHref, setLinkHref] = useState("");
+  const [isPublished, setIsPublished] = useState(true);
+  const create = trpc.content.createEvent.useMutation({ onSuccess: async () => { toast.success("Event added to the content board."); clear(); await onDone(); } });
+  const update = trpc.content.updateEvent.useMutation({ onSuccess: async () => { toast.success("Event saved."); clear(); await onDone(); } });
+  const remove = trpc.content.deleteEvent.useMutation({ onSuccess: onDone });
+  const busy = create.isPending || update.isPending;
+  const clear = () => { setEditing(null); setTitle(""); setCampus("Georgia Tech"); setDetails(""); setStartsAt(""); setEndsAt(""); setLinkHref(""); setIsPublished(true); };
+  const edit = (event: EventItem) => { setEditing(event); setTitle(event.title); setCampus(event.campus); setDetails(event.details ?? ""); setStartsAt(toLocalInputValue(event.startsAt)); setEndsAt(toLocalInputValue(event.endsAt)); setLinkHref(event.linkHref ?? ""); setIsPublished(event.isPublished); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const save = () => {
+    if (!title.trim() || !campus.trim() || !startsAt) return toast.error("Add a title, campus, and start time.");
+    const data = { title, campus, details, startsAt: inputToDate(startsAt)!, endsAt: inputToDate(endsAt), linkHref, isPublished };
+    editing ? update.mutate({ id: editing.id, data }) : create.mutate(data);
+  };
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Upcoming dates</p><h2>Keep the campus trail current.</h2><p>Create an event once, then revise or remove it any time. Published dates appear on the public site in chronological order.</p></div><div className="admin-two-column"><div className="admin-form-card"><div className="form-card-title"><h3>{editing ? "Edit event" : "Add an event"}</h3>{editing && <button onClick={clear}><X size={16} /> Cancel edit</button>}</div><label>Event title<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Spring pantry pop-up" /></label><div className="form-row"><label>Campus<select value={campus} onChange={(e) => setCampus(e.target.value)}><option>Georgia Tech</option><option>Georgia State</option><option>Kennesaw State</option><option>Multi-campus</option></select></label><label className="toggle-label"><span>Visible on site</span><input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} /></label></div><label>Start date and time<input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} /></label><label>End date and time <small>Optional</small><input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} /></label><label>Details <small>Optional</small><textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="What should students know before they arrive?" /></label><label>Action link <small>Optional</small><input value={linkHref} onChange={(e) => setLinkHref(e.target.value)} placeholder="https://…" /></label><button className="admin-button admin-button-primary" onClick={save} disabled={busy}>{busy ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />}{editing ? "Save event" : "Add event"}</button></div><div className="admin-list-card"><div className="list-card-title"><h3>All events</h3><span>{events.length}</span></div>{events.length ? <div className="content-list">{events.map((event) => <article className="content-row" key={event.id}><div className="date-square"><b>{new Date(event.startsAt).toLocaleDateString(undefined, { month: "short" }).toUpperCase()}</b><strong>{new Date(event.startsAt).getDate()}</strong></div><div className="content-row-main"><div><h4>{event.title}</h4><span className={event.isPublished ? "status-published" : "status-draft"}>{event.isPublished ? "Live" : "Hidden"}</span></div><p><MapPin size={14} /> {event.campus} · {new Date(event.startsAt).toLocaleString(undefined, { weekday: "short", hour: "numeric", minute: "2-digit" })}</p></div><div className="row-actions"><button aria-label={`Edit ${event.title}`} onClick={() => edit(event)}><Pencil size={15} /></button><button aria-label={`Delete ${event.title}`} className="danger" onClick={() => { if (window.confirm("Remove this event?")) remove.mutate({ id: event.id }); }}><Trash2 size={15} /></button></div></article>)}</div> : <EmptyState icon={CalendarDays} title="No events yet" copy="Add the next food drive, closet pop-up, or outreach shift from the form." />}</div></div></section>;
+}
+
+function SlidesBoard({ slides, onDone }: { slides: SlideItem[]; onDone: () => Promise<void> }) {
+  const [editing, setEditing] = useState<SlideItem | null>(null);
+  const [eyebrow, setEyebrow] = useState("Student-led mutual aid across ATL");
+  const [headline, setHeadline] = useState("Small supplies.");
+  const [accent, setAccent] = useState("Shared strength.");
+  const [body, setBody] = useState("Can Do ATL brings students together to combat food and clothing insecurity across Georgia Tech, Georgia State, and Kennesaw State.");
+  const [imageUrl, setImageUrl] = useState(primaryImage);
+  const [imageKey, setImageKey] = useState("");
+  const [imageAlt, setImageAlt] = useState("Students sharing food, clothing, and care supplies");
+  const [position, setPosition] = useState(0);
+  const [isPublished, setIsPublished] = useState(true);
+  const upload = trpc.content.uploadHeroImage.useMutation();
+  const create = trpc.content.createSlide.useMutation({ onSuccess: async () => { toast.success("Hero slide saved. It will rotate every six seconds when live."); clear(); await onDone(); } });
+  const update = trpc.content.updateSlide.useMutation({ onSuccess: async () => { toast.success("Hero slide saved."); clear(); await onDone(); } });
+  const remove = trpc.content.deleteSlide.useMutation({ onSuccess: onDone });
+  const busy = create.isPending || update.isPending || upload.isPending;
+  const clear = () => { setEditing(null); setEyebrow("Student-led mutual aid across ATL"); setHeadline("Small supplies."); setAccent("Shared strength."); setBody("Can Do ATL brings students together to combat food and clothing insecurity across Georgia Tech, Georgia State, and Kennesaw State."); setImageUrl(primaryImage); setImageKey(""); setImageAlt("Students sharing food, clothing, and care supplies"); setPosition(slides.length); setIsPublished(true); };
+  const edit = (slide: SlideItem) => { setEditing(slide); setEyebrow(slide.eyebrow); setHeadline(slide.headline); setAccent(slide.accent ?? ""); setBody(slide.body); setImageUrl(slide.imageUrl); setImageKey(slide.imageKey ?? ""); setImageAlt(slide.imageAlt); setPosition(slide.position); setIsPublished(slide.isPublished); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const chooseFile = async (file?: File) => { if (!file) return; try { const dataUrl = await readImageFile(file); const uploaded = await upload.mutateAsync({ dataUrl }); setImageUrl(uploaded.url); setImageKey(uploaded.key); toast.success("Image uploaded. Add or save the slide to publish it."); } catch (error) { toast.error(error instanceof Error ? error.message : "Upload failed."); } };
+  const save = () => { if (!headline.trim() || !eyebrow.trim() || !body.trim() || !imageUrl.trim() || !imageAlt.trim()) return toast.error("Complete the headline, summary, image, and image description."); const data = { eyebrow, headline, accent, body, imageUrl, imageKey, imageAlt, volunteerHref: "#get-involved", donateHref: "#get-involved", position: Number(position), isPublished }; editing ? update.mutate({ id: editing.id, data }) : create.mutate(data); };
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Homepage motion</p><h2>Build the first impression.</h2><p>Slides move automatically every six seconds. Use this board to add, edit, hide, reorder, and replace the visual stories at the top of the public page.</p></div><div className="admin-two-column"><div className="admin-form-card"><div className="form-card-title"><h3>{editing ? "Edit hero slide" : "Add a hero slide"}</h3>{editing && <button onClick={clear}><X size={16} /> Cancel edit</button>}</div><label>Eyebrow<input value={eyebrow} onChange={(e) => setEyebrow(e.target.value)} /></label><label>Main headline<input value={headline} onChange={(e) => setHeadline(e.target.value)} /></label><label>Accent line <small>Optional</small><input value={accent} onChange={(e) => setAccent(e.target.value)} /></label><label>Summary<textarea value={body} onChange={(e) => setBody(e.target.value)} /></label><div className="upload-zone"><img src={imageUrl} alt="" /><div><span className="upload-icon"><ImagePlus size={19} /></span><b>Hero image</b><p>PNG, JPEG, or WebP under 4.5 MB.</p><label className="upload-button"><Upload size={15} /> {upload.isPending ? "Uploading…" : "Choose image"}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => chooseFile(e.target.files?.[0])} /></label></div></div><label>Image description<input value={imageAlt} onChange={(e) => setImageAlt(e.target.value)} /></label><div className="form-row"><label>Order<input type="number" min="0" value={position} onChange={(e) => setPosition(Number(e.target.value))} /></label><label className="toggle-label"><span>Visible on site</span><input type="checkbox" checked={isPublished} onChange={(e) => setIsPublished(e.target.checked)} /></label></div><button className="admin-button admin-button-primary" onClick={save} disabled={busy}>{busy ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />}{editing ? "Save slide" : "Add slide"}</button></div><div className="admin-list-card"><div className="list-card-title"><h3>Carousel queue</h3><span>{slides.length}</span></div>{slides.length ? <div className="slide-list">{slides.map((slide) => <article className="slide-row" key={slide.id}><img src={slide.imageUrl} alt="" /><div><div><span className={slide.isPublished ? "status-published" : "status-draft"}>{slide.isPublished ? "Live" : "Hidden"}</span><small>Slide {slide.position + 1}</small></div><h4>{slide.headline} {slide.accent}</h4><p>{slide.eyebrow}</p></div><div className="row-actions"><button aria-label={`Edit ${slide.headline}`} onClick={() => edit(slide)}><Pencil size={15} /></button><button aria-label={`Delete ${slide.headline}`} className="danger" onClick={() => { if (window.confirm("Remove this carousel slide?")) remove.mutate({ id: slide.id }); }}><Trash2 size={15} /></button></div></article>)}</div> : <EmptyState icon={Images} title="Your carousel starts here" copy="Add the first slide to replace the starter image and enable automatic rotation." />}</div></div></section>;
+}
+
+function UpdatesBoard({ updates, onDone }: { updates: UpdateItem[]; onDone: () => Promise<void> }) {
+  const [editing, setEditing] = useState<UpdateItem | null>(null);
+  const [title, setTitle] = useState(""); const [body, setBody] = useState(""); const [linkLabel, setLinkLabel] = useState(""); const [linkHref, setLinkHref] = useState(""); const [status, setStatus] = useState<"draft" | "published">("published");
+  const create = trpc.content.createUpdate.useMutation({ onSuccess: async () => { toast.success("Site update saved."); clear(); await onDone(); } }); const update = trpc.content.updateUpdate.useMutation({ onSuccess: async () => { toast.success("Site update saved."); clear(); await onDone(); } }); const remove = trpc.content.deleteUpdate.useMutation({ onSuccess: onDone }); const busy = create.isPending || update.isPending;
+  const clear = () => { setEditing(null); setTitle(""); setBody(""); setLinkLabel(""); setLinkHref(""); setStatus("published"); }; const edit = (item: UpdateItem) => { setEditing(item); setTitle(item.title); setBody(item.body); setLinkLabel(item.linkLabel ?? ""); setLinkHref(item.linkHref ?? ""); setStatus(item.status); window.scrollTo({ top: 0, behavior: "smooth" }); }; const save = () => { if (!title.trim() || !body.trim()) return toast.error("Add a title and a message."); const data = { title, body, linkLabel, linkHref, status }; editing ? update.mutate({ id: editing.id, data }) : create.mutate(data); };
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Website notes</p><h2>Share the latest with care.</h2><p>Post quick site-wide messages about a drive, campus resource, volunteer call, or partnership. Draft anything that needs another pass.</p></div><div className="admin-two-column"><div className="admin-form-card"><div className="form-card-title"><h3>{editing ? "Edit update" : "Write an update"}</h3>{editing && <button onClick={clear}><X size={16} /> Cancel edit</button>}</div><label>Headline<input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. New pantry hours this week" /></label><label>Message<textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Keep this practical, direct, and helpful." /></label><div className="form-row"><label>Link label <small>Optional</small><input value={linkLabel} onChange={(e) => setLinkLabel(e.target.value)} placeholder="Learn more" /></label><label>Link URL <small>Optional</small><input value={linkHref} onChange={(e) => setLinkHref(e.target.value)} placeholder="https://…" /></label></div><label>Status<select value={status} onChange={(e) => setStatus(e.target.value as "draft" | "published")}><option value="published">Publish now</option><option value="draft">Save as draft</option></select></label><button className="admin-button admin-button-primary" onClick={save} disabled={busy}>{busy ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />}{editing ? "Save update" : "Publish update"}</button></div><div className="admin-list-card"><div className="list-card-title"><h3>Recent updates</h3><span>{updates.length}</span></div>{updates.length ? <div className="update-list">{updates.map((item) => <article className="update-row" key={item.id}><div><div><span className={item.status === "published" ? "status-published" : "status-draft"}>{item.status}</span><FileText size={15} /></div><h4>{item.title}</h4><p>{item.body}</p>{item.linkLabel && <span className="update-link"><LinkIcon size={13} /> {item.linkLabel}</span>}</div><div className="row-actions"><button aria-label={`Edit ${item.title}`} onClick={() => edit(item)}><Pencil size={15} /></button><button aria-label={`Delete ${item.title}`} className="danger" onClick={() => { if (window.confirm("Remove this update?")) remove.mutate({ id: item.id }); }}><Trash2 size={15} /></button></div></article>)}</div> : <EmptyState icon={FileText} title="No updates yet" copy="Your next message will appear here and on the public site once published." />}</div></div></section>;
+}
+
+function TeamBoard() {
+  const [email, setEmail] = useState(""); const invites = trpc.access.listInvites.useQuery(); const utils = trpc.useUtils(); const invite = trpc.access.invite.useMutation({ onSuccess: async () => { toast.success("Administrator invitation saved."); setEmail(""); await utils.access.listInvites.invalidate(); } }); const revoke = trpc.access.revoke.useMutation({ onSuccess: () => utils.access.listInvites.invalidate() });
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Primary administrator controls</p><h2>Invite people you trust.</h2><p>Only the primary Can Do ATL account can manage this allow-list. An invited person must sign in with the exact email listed here, then activate their invitation.</p></div><div className="admin-two-column"><div className="admin-form-card"><div className="form-card-title"><h3>Add an administrator</h3><ShieldCheck size={18} /></div><label>Email address<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.edu" /></label><button className="admin-button admin-button-primary" onClick={() => { if (!email) return toast.error("Enter an email address."); invite.mutate({ email }); }} disabled={invite.isPending}>{invite.isPending ? <Loader2 className="animate-spin" size={17} /> : <MailPlus size={17} />} Invite administrator</button><p className="admin-form-note">This makes the email eligible to activate access. It does not send an email message automatically.</p></div><div className="admin-list-card"><div className="list-card-title"><h3>Access list</h3><span>{invites.data?.length ?? 0}</span></div>{invites.data?.length ? <div className="content-list">{invites.data.map((item) => <article className="content-row invite-row" key={item.id}><span className="invite-avatar">{item.email.charAt(0).toUpperCase()}</span><div className="content-row-main"><div><h4>{item.email}</h4><span className={item.status === "accepted" ? "status-published" : item.status === "pending" ? "status-draft" : "status-revoked"}>{item.status}</span></div><p>{item.status === "accepted" ? "Access activated" : item.status === "pending" ? "Awaiting activation" : "Access removed"}</p></div>{item.status !== "revoked" && <div className="row-actions"><button aria-label={`Revoke ${item.email}`} className="danger" onClick={() => { if (window.confirm("Revoke this administrator invitation?")) revoke.mutate({ id: item.id }); }}><Trash2 size={15} /></button></div>}</article>)}</div> : <EmptyState icon={UsersRound} title="No additional administrators" copy="The workspace currently belongs to the primary Can Do ATL account only." />}</div></div></section>;
+}
+
+function EmptyState({ icon: Icon, title, copy }: { icon: typeof CalendarDays; title: string; copy: string }) { return <div className="admin-empty"><span><Icon size={24} /></span><h4>{title}</h4><p>{copy}</p></div>; }
+
+export default function Admin() { return <AdminGate />; }

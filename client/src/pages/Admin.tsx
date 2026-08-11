@@ -3,8 +3,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  BarChart3,
   CalendarDays,
   Check,
   ChevronRight,
@@ -27,10 +28,12 @@ import {
   X,
 } from "lucide-react";
 
-type Tab = "events" | "slides" | "updates" | "team";
+type Tab = "events" | "slides" | "updates" | "impact" | "team";
 type SlideItem = { id: number; eyebrow: string; headline: string; accent: string | null; body: string; imageUrl: string; imageKey: string | null; imageAlt: string; volunteerHref: string | null; donateHref: string | null; position: number; isPublished: boolean };
 type EventItem = { id: number; title: string; campus: string; details: string | null; startsAt: Date; endsAt: Date | null; linkHref: string | null; isPublished: boolean };
 type UpdateItem = { id: number; title: string; body: string; linkLabel: string | null; linkHref: string | null; status: "draft" | "published" };
+type ImpactMetricKey = "care_packages" | "clothing_items" | "student_volunteers";
+type ImpactMetricItem = { metricKey: ImpactMetricKey; value: number; label: string; position: number };
 
 const primaryImage = "/manus-storage/cando-hero-atl_b12524b6.png";
 
@@ -131,6 +134,7 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
     events: adminContent.data?.events.filter((event) => event.isPublished).length ?? 0,
     slides: adminContent.data?.slides.filter((slide) => slide.isPublished).length ?? 0,
     updates: adminContent.data?.updates.filter((update) => update.status === "published").length ?? 0,
+    impact: adminContent.data?.impactMetrics.length ?? 3,
   }), [adminContent.data]);
 
   if (adminContent.isLoading) return <div className="admin-loading"><Loader2 className="animate-spin" /> Preparing your content board…</div>;
@@ -151,21 +155,61 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
         <button onClick={() => setTab("events")} className={tab === "events" ? "active" : ""}><CalendarDays /><span><b>{counts.events}</b> live events</span></button>
         <button onClick={() => setTab("slides")} className={tab === "slides" ? "active" : ""}><Images /><span><b>{counts.slides}</b> carousel slides</span></button>
         <button onClick={() => setTab("updates")} className={tab === "updates" ? "active" : ""}><FileText /><span><b>{counts.updates}</b> site updates</span></button>
+        <button onClick={() => setTab("impact")} className={tab === "impact" ? "active" : ""}><BarChart3 /><span><b>{counts.impact}</b> impact counters</span></button>
       </div>
 
       <div className="admin-tabs" role="tablist" aria-label="Content areas">
         <button role="tab" aria-selected={tab === "events"} className={tab === "events" ? "selected" : ""} onClick={() => setTab("events")}><CalendarDays size={16} /> Events</button>
         <button role="tab" aria-selected={tab === "slides"} className={tab === "slides" ? "selected" : ""} onClick={() => setTab("slides")}><Images size={16} /> Hero carousel</button>
         <button role="tab" aria-selected={tab === "updates"} className={tab === "updates" ? "selected" : ""} onClick={() => setTab("updates")}><FileText size={16} /> Updates</button>
+        <button role="tab" aria-selected={tab === "impact"} className={tab === "impact" ? "selected" : ""} onClick={() => setTab("impact")}><BarChart3 size={16} /> Impact</button>
         {primary && <button role="tab" aria-selected={tab === "team"} className={tab === "team" ? "selected" : ""} onClick={() => setTab("team")}><UsersRound size={16} /> Admin access</button>}
       </div>
 
       {tab === "events" && <EventsBoard events={adminContent.data?.events ?? []} onDone={invalidate} />}
       {tab === "slides" && <SlidesBoard slides={adminContent.data?.slides ?? []} onDone={invalidate} />}
       {tab === "updates" && <UpdatesBoard updates={adminContent.data?.updates ?? []} onDone={invalidate} />}
+      {tab === "impact" && <ImpactBoard metrics={(adminContent.data?.impactMetrics ?? []) as ImpactMetricItem[]} onDone={invalidate} />}
       {tab === "team" && primary && <TeamBoard />}
     </div>
   );
+}
+
+const impactNames: Record<ImpactMetricKey, string> = {
+  care_packages: "Care packages shared",
+  clothing_items: "Clothing items recirculated",
+  student_volunteers: "Student volunteers",
+};
+
+function ImpactBoard({ metrics, onDone }: { metrics: ImpactMetricItem[]; onDone: () => Promise<void> }) {
+  const [draft, setDraft] = useState<ImpactMetricItem[]>(metrics);
+  const update = trpc.content.updateImpactMetrics.useMutation({
+    onSuccess: async () => {
+      toast.success("Impact counters are live on the public site.");
+      await onDone();
+    },
+    onError: () => toast.error("Impact counters could not be saved. Please try again."),
+  });
+
+  useEffect(() => setDraft(metrics), [metrics]);
+
+  const editMetric = (metricKey: ImpactMetricKey, field: "value" | "label", nextValue: string) => {
+    setDraft((current) => current.map((metric) => {
+      if (metric.metricKey !== metricKey) return metric;
+      return field === "value"
+        ? { ...metric, value: Math.max(0, Number.parseInt(nextValue || "0", 10) || 0) }
+        : { ...metric, label: nextValue };
+    }));
+  };
+  const save = () => {
+    if (draft.length !== 3 || draft.some((metric) => metric.label.trim().length < 4)) {
+      toast.error("Keep all three counters and add a clear public description for each one.");
+      return;
+    }
+    update.mutate({ metrics: draft.map((metric) => ({ ...metric, label: metric.label.trim() })) });
+  };
+
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Impact reporting</p><h2>Tell the truth, then grow it.</h2><p>Update these counts only when you have confirmed totals. Every change appears in the public impact section right away.</p></div><div className="admin-list-card impact-editor-card"><div className="list-card-title"><h3>Public impact counters</h3><span>{draft.length}</span></div><div className="impact-editor-grid">{[...draft].sort((a, b) => a.position - b.position).map((metric) => <article className="impact-editor-item" key={metric.metricKey}><div><span className="impact-editor-index">0{metric.position + 1}</span><h4>{impactNames[metric.metricKey]}</h4></div><label>Confirmed count<input type="number" min="0" inputMode="numeric" value={metric.value} onChange={(event) => editMetric(metric.metricKey, "value", event.target.value)} /></label><label>Public description<input value={metric.label} onChange={(event) => editMetric(metric.metricKey, "label", event.target.value)} /></label></article>)}</div><div className="impact-editor-footer"><p>Use zero when activity has not started yet. Never estimate a count.</p><button className="admin-button admin-button-primary" onClick={save} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />} Save impact counts</button></div></div></section>;
 }
 
 function EventsBoard({ events, onDone }: { events: EventItem[]; onDone: () => Promise<void> }) {

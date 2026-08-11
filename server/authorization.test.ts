@@ -1,11 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import { editorProcedure } from "./authorization";
 import { router } from "./_core/trpc";
 import type { TrpcContext } from "./_core/context";
 
 const testRouter = router({
   editorOnly: editorProcedure.query(({ ctx }) => ({ id: ctx.user.id })),
+  updateImpact: editorProcedure.input(z.object({ value: z.number().int().min(0) })).mutation(({ input }) => input),
 });
 
 function contextFor(email: string, role: "admin" | "user"): TrpcContext {
@@ -37,5 +39,12 @@ describe("editor-protected procedures", () => {
   it("allows the specified primary email and an admitted administrator", async () => {
     await expect(testRouter.createCaller(contextFor("candoatltm@gmail.com", "user")).editorOnly()).resolves.toEqual({ id: 42 });
     await expect(testRouter.createCaller(contextFor("invited@example.com", "admin")).editorOnly()).resolves.toEqual({ id: 42 });
+  });
+
+  it("rejects non-administrators from submitting impact-counter updates", async () => {
+    const caller = testRouter.createCaller(contextFor("student@example.com", "user"));
+    await expect(caller.updateImpact({ value: 25 })).rejects.toMatchObject<Partial<TRPCError>>({
+      code: "FORBIDDEN",
+    });
   });
 });

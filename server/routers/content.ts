@@ -17,8 +17,10 @@ import {
   revokeInvite,
   updateEvent,
   updateHeroSlide,
+  upsertImpactMetrics,
   updateSiteUpdate,
 } from "../db";
+import { IMPACT_METRIC_KEYS } from "../impact";
 import { editorProcedure, primaryAdministratorProcedure } from "../authorization";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
@@ -53,6 +55,20 @@ const editorSlideInput = z.object({
   position: z.number().int().min(0).max(999),
   isPublished: z.boolean(),
 });
+const impactMetricInput = z.object({
+  metricKey: z.enum(IMPACT_METRIC_KEYS),
+  value: z.number().int().min(0).max(1_000_000_000),
+  label: z.string().trim().min(4).max(180),
+  position: z.number().int().min(0).max(2),
+});
+const impactMetricsInput = z.object({
+  metrics: z.array(impactMetricInput).length(3).superRefine((metrics, ctx) => {
+    const keys = metrics.map((metric) => metric.metricKey);
+    if (new Set(keys).size !== IMPACT_METRIC_KEYS.length || !IMPACT_METRIC_KEYS.every((key) => keys.includes(key))) {
+      ctx.addIssue({ code: "custom", message: "Provide each public impact metric exactly once." });
+    }
+  }),
+});
 
 function parseImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -75,6 +91,7 @@ export const contentRouter = router({
   createSlide: editorProcedure.input(editorSlideInput).mutation(({ ctx, input }) => createHeroSlide({ ...input, createdBy: ctx.user.id })),
   updateSlide: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorSlideInput })).mutation(({ input }) => updateHeroSlide(input.id, input.data)),
   deleteSlide: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteHeroSlide(input.id)),
+  updateImpactMetrics: editorProcedure.input(impactMetricsInput).mutation(({ ctx, input }) => upsertImpactMetrics(input.metrics, ctx.user.id)),
   uploadHeroImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);
     return storagePut(`hero-slides/${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);

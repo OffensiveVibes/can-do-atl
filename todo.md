@@ -43,3 +43,9 @@
 ## Honest impact update
 
 - [x] Replace mock impact figures with zeroed counts and a message inviting visitors to make the difference.
+
+## Impact management dashboard
+
+- [x] Add a secure database-backed model and protected API for the three public impact counters.
+- [x] Add an Impact editor to the staff workspace and connect the public impact section to live values.
+- [x] Verify authorized impact updates work and regular visitors cannot modify the counts.

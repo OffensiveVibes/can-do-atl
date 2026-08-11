@@ -4,11 +4,13 @@ import {
   adminInvites,
   events,
   heroSlides,
+  impactMetrics,
   InsertUser,
   siteUpdates,
   users,
 } from "../drizzle/schema";
 import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from "./cms";
+import { DEFAULT_IMPACT_METRICS, type ImpactMetricKey } from "./impact";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -68,22 +70,31 @@ export async function getUserByOpenId(openId: string) {
 export async function getPublicContent() {
   const db = await requireDb();
   const now = new Date();
-  const [slides, upcomingEvents, updates] = await Promise.all([
+  const [slides, upcomingEvents, updates, metrics] = await Promise.all([
     db.select().from(heroSlides).where(eq(heroSlides.isPublished, true)).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).where(and(eq(events.isPublished, true), gte(events.startsAt, now))).orderBy(asc(events.startsAt)).limit(6),
     db.select().from(siteUpdates).where(eq(siteUpdates.status, "published")).orderBy(desc(siteUpdates.createdAt)).limit(3),
+    db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
   ]);
-  return { slides, events: upcomingEvents, updates };
+  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS };
 }
 
 export async function getAdminContent() {
   const db = await requireDb();
-  const [slides, allEvents, updates] = await Promise.all([
+  const [slides, allEvents, updates, metrics] = await Promise.all([
     db.select().from(heroSlides).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).orderBy(asc(events.startsAt)),
     db.select().from(siteUpdates).orderBy(desc(siteUpdates.updatedAt)),
+    db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
   ]);
-  return { slides, events: allEvents, updates };
+  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS };
+}
+
+export async function upsertImpactMetrics(metrics: Array<{ metricKey: ImpactMetricKey; value: number; label: string; position: number }>, updatedBy: number) {
+  const db = await requireDb();
+  await Promise.all(metrics.map((metric) => db.insert(impactMetrics).values({ ...metric, updatedBy }).onDuplicateKeyUpdate({
+    set: { value: metric.value, label: metric.label, position: metric.position, updatedBy },
+  })));
 }
 
 export async function createSiteUpdate(input: { title: string; body: string; linkLabel?: string; linkHref?: string; status: "draft" | "published"; authorId: number }) {

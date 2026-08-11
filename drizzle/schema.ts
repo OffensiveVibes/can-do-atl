@@ -81,6 +81,22 @@ export const heroSlides = mysqlTable(
   (table) => [index("heroSlides_public_position_idx").on(table.isPublished, table.position)],
 );
 
+/** Three administrator-maintained public impact counters. */
+export const impactMetrics = mysqlTable(
+  "impactMetrics",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    metricKey: varchar("metricKey", { length: 64 }).notNull().unique(),
+    value: int("value").default(0).notNull(),
+    label: varchar("label", { length: 180 }).notNull(),
+    position: int("position").default(0).notNull(),
+    updatedBy: int("updatedBy").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [index("impactMetrics_position_idx").on(table.position)],
+);
+
 /** Primary-administrator managed allow-list for additional administrators. */
 export const adminInvites = mysqlTable(
   "adminInvites",
@@ -100,4 +116,5 @@ export type InsertUser = typeof users.$inferInsert;
 export type SiteUpdate = typeof siteUpdates.$inferSelect;
 export type Event = typeof events.$inferSelect;
 export type HeroSlide = typeof heroSlides.$inferSelect;
+export type ImpactMetric = typeof impactMetrics.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;

@@ -8,7 +8,7 @@ import {
   siteUpdates,
   users,
 } from "../drizzle/schema";
-import { isPrimaryAdministrator, normalizeEmail } from "./cms";
+import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from "./cms";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -29,6 +29,15 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) throw new Error("User openId is required for upsert");
   const db = await requireDb();
   const normalizedEmail = normalizeEmail(user.email);
+  const existingUser = await db.select({ id: users.id }).from(users).where(eq(users.openId, user.openId)).limit(1);
+  const invitation = normalizedEmail
+    ? await db.select({ status: adminInvites.status }).from(adminInvites).where(eq(adminInvites.email, normalizedEmail)).limit(1)
+    : [];
+
+  if (!existingUser[0] && !canCreateStaffAccount(normalizedEmail, invitation[0]?.status)) {
+    return;
+  }
+
   const values: InsertUser = { openId: user.openId };
   const updateSet: Record<string, unknown> = {};
 

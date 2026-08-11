@@ -23,3 +23,8 @@
 
 - [x] Link every volunteer action to the supplied Google Form.
 - [x] Link the public essentials-donation action to a pre-addressed email for Can Do ATL.
+
+## Staff access update
+
+- [x] Add a top-level Staff sign in action with a friendly smiley icon.
+- [x] Clarify that `candoatltm@gmail.com` creates or activates the sole primary staff account, while added staff require a primary-admin invitation.

@@ -78,7 +78,7 @@ function AdminGate() {
           <div className="access-icon"><LockKeyhole size={28} /></div>
           <p className="admin-kicker">Can Do ATL workspace</p>
           <h1>Sign in to manage the site.</h1>
-          <p>This private space is for the Can Do ATL administrator and invited collaborators only.</p>
+          <p>Sign in with <strong>candoatltm@gmail.com</strong> to create or activate the primary staff account. Every other staff email must be invited from this workspace first.</p>
           <button className="admin-button admin-button-primary" onClick={() => startLogin()}>
             Sign in securely <ChevronRight size={18} />
           </button>

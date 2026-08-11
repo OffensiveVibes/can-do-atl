@@ -77,6 +77,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .brand-name em { color: var(--terracotta); font-size: 0.85rem; font-weight: 800; font-style: normal; letter-spacing: -0.03em; }
 .desktop-nav { display: none; }
 .header-action { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--green); font-size: 0.71rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
+.site-header .header-action { display: none; }
+.staff-signin-entry { position: absolute; z-index: 30; top: 1rem; right: 1rem; display: inline-flex; align-items: center; gap: 0.36rem; min-height: 36px; padding: 0.53rem 0.72rem; border: 1px solid var(--green); border-radius: 999px; background: var(--cream); color: var(--green); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.045em; text-transform: uppercase; transition: background-color 160ms var(--ease-out), color 160ms var(--ease-out), transform 160ms var(--ease-out); }
+.staff-signin-entry:hover { background: var(--green); color: var(--cream); transform: translateY(-1px); }
+.staff-signin-entry:active { transform: scale(0.97); }
 
 .hero-section { position: relative; padding: 4.2rem 0 3rem; background-image: radial-gradient(rgba(44, 44, 44, 0.085) 0.7px, transparent 0.7px); background-size: 8px 8px; }
 .hero-grid { display: grid; align-items: center; gap: 2.7rem; }
@@ -251,6 +255,7 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
   .desktop-nav a:hover { color: var(--terracotta); }
   .header-action { padding: 0.68rem 0.88rem; border: 1px solid var(--green); border-radius: 999px; }
   .header-action:hover { background: var(--green); color: var(--cream); }
+  .site-header .header-action { display: none; }
   .hero-section { min-height: 620px; padding: 5.6rem 0 5.2rem; }
   .hero-grid { grid-template-columns: 0.94fr 1.06fr; gap: 2.8rem; }
   .hero-visual { margin-right: 0; }

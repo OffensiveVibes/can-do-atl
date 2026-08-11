@@ -29,3 +29,9 @@
 - [x] Add a top-level Staff sign in action with a friendly smiley icon.
 - [x] Clarify that `candoatltm@gmail.com` creates or activates the sole primary staff account, while added staff require a primary-admin invitation.
 - [x] Let a signed-in non-invited user sign out from the invite-only screen and switch to the primary staff email.
+
+## Inclusive carousel update
+
+- [x] Generate and integrate multiple inclusive Can Do ATL volunteer illustrations as carousel starter slides.
+- [x] Set the public hero carousel to advance through slides every four seconds.
+- [x] Confirm administrators can upload and manage multiple carousel images from the staff workspace.

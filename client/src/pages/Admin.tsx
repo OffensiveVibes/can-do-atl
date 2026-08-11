@@ -55,7 +55,7 @@ function readImageFile(file: File) {
 }
 
 function AdminGate() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const access = trpc.access.status.useQuery(undefined, { enabled: Boolean(user) });
   const accept = trpc.access.acceptInvitation.useMutation({
     onSuccess: (result) => {
@@ -67,6 +67,10 @@ function AdminGate() {
       }
     },
   });
+  const switchAccount = async () => {
+    await logout();
+    startLogin();
+  };
 
   if (loading || (user && access.isLoading)) {
     return <div className="admin-loading"><Loader2 className="animate-spin" /> Loading workspace…</div>;
@@ -105,6 +109,9 @@ function AdminGate() {
               {accept.isPending ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />} Activate invitation
             </button>
           )}
+          <button className="admin-button admin-button-secondary" onClick={switchAccount}>
+            Sign out and use another email <ChevronRight size={18} />
+          </button>
           <a href="/" className="admin-back-link">Return to public site</a>
         </div>
       </main>

@@ -28,3 +28,4 @@
 
 - [x] Add a top-level Staff sign in action with a friendly smiley icon.
 - [x] Clarify that `candoatltm@gmail.com` creates or activates the sole primary staff account, while added staff require a primary-admin invitation.
+- [x] Let a signed-in non-invited user sign out from the invite-only screen and switch to the primary staff email.

@@ -2,6 +2,8 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
+import SortableProfilesBoard from "@/components/ProfilesBoard";
+import AdminRequestBoard from "@/components/AdminRequestBoard";
 import { SITE_TEXT_DEFAULTS, type SiteTextKey, type SiteTextValues } from "@shared/siteText";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
@@ -36,7 +38,7 @@ import {
   Youtube,
 } from "lucide-react";
 
-type Tab = "events" | "slides" | "updates" | "impact" | "text" | "appearance" | "members" | "team";
+type Tab = "events" | "slides" | "updates" | "impact" | "text" | "appearance" | "members" | "requests" | "team";
 type SlideItem = { id: number; eyebrow: string; headline: string; accent: string | null; body: string; imageUrl: string; imageKey: string | null; imageAlt: string; volunteerHref: string | null; donateHref: string | null; position: number; isPublished: boolean };
 type EventItem = { id: number; title: string; campus: string; details: string | null; startsAt: Date; endsAt: Date | null; linkHref: string | null; isPublished: boolean };
 type UpdateItem = { id: number; title: string; body: string; linkLabel: string | null; linkHref: string | null; status: "draft" | "published" };
@@ -70,7 +72,10 @@ function readImageFile(file: File) {
 
 function AdminGate() {
   const { user, loading, logout } = useAuth();
+  const [requestEmail, setRequestEmail] = useState("");
+  const [requestNote, setRequestNote] = useState("");
   const access = trpc.access.status.useQuery(undefined, { enabled: Boolean(user) });
+  const submitRequest = trpc.access.submitRequest.useMutation({ onSuccess: () => { toast.success("Your administrator request was saved for staff review."); setRequestEmail(""); setRequestNote(""); }, onError: (error) => toast.error(error.message || "Your request could not be submitted.") });
   const accept = trpc.access.acceptInvitation.useMutation({
     onSuccess: (result) => {
       if (result.activated) {
@@ -96,11 +101,12 @@ function AdminGate() {
           <div className="access-icon"><LockKeyhole size={28} /></div>
           <p className="admin-kicker">Can Do ATL workspace</p>
           <h1>Sign in to manage the site.</h1>
-          <p>Sign in with <strong>candoatltm@gmail.com</strong> to create or activate the primary staff account. Every other staff email must be invited from this workspace first.</p>
+          <p><strong>You must be an administrator to sign in.</strong> To formally request administrator access, submit your email below or email <a href="mailto:candoatltm@gmail.com">candoatltm@gmail.com</a>.</p>
           <button className="admin-button admin-button-primary" onClick={() => startLogin()}>
             Sign in securely <ChevronRight size={18} />
           </button>
           <a href="/" className="admin-back-link">Return to public site</a>
+          <div className="access-request-form"><p className="admin-kicker">Request administrator access</p><label>Email address<input type="email" value={requestEmail} onChange={(event) => setRequestEmail(event.target.value)} placeholder="name@example.edu" /></label><label>Optional note<textarea value={requestNote} onChange={(event) => setRequestNote(event.target.value)} placeholder="Tell the team how you would help." /></label><button className="admin-button admin-button-secondary" onClick={() => { if (!requestEmail.trim()) return toast.error("Enter your email address."); submitRequest.mutate({ email: requestEmail, note: requestNote }); }} disabled={submitRequest.isPending}>{submitRequest.isPending ? <Loader2 className="animate-spin" size={18} /> : <MailPlus size={18} />} Submit request</button></div>
         </div>
       </main>
     );
@@ -137,6 +143,7 @@ function AdminGate() {
 function AdminWorkspace({ primary }: { primary: boolean }) {
   const [tab, setTab] = useState<Tab>("events");
   const adminContent = trpc.content.admin.useQuery();
+  const accessRequests = trpc.access.listRequests.useQuery();
   const utils = trpc.useUtils();
   const invalidate = async () => {
     await Promise.all([utils.content.admin.invalidate(), utils.content.public.invalidate()]);
@@ -177,6 +184,7 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
         <button role="tab" aria-selected={tab === "text"} className={tab === "text" ? "selected" : ""} onClick={() => setTab("text")}><FileText size={16} /> Website text</button>
         <button role="tab" aria-selected={tab === "appearance"} className={tab === "appearance" ? "selected" : ""} onClick={() => setTab("appearance")}><Palette size={16} /> Design &amp; brand</button>
         <button role="tab" aria-selected={tab === "members"} className={tab === "members" ? "selected" : ""} onClick={() => setTab("members")}><UsersRound size={16} /> Team profiles</button>
+        <button role="tab" aria-selected={tab === "requests"} className={tab === "requests" ? "selected" : ""} onClick={() => setTab("requests")}><MailPlus size={16} /> Requests {accessRequests.data?.filter((item) => item.status === "pending").length ? `(${accessRequests.data.filter((item) => item.status === "pending").length})` : ""}</button>
         {primary && <button role="tab" aria-selected={tab === "team"} className={tab === "team" ? "selected" : ""} onClick={() => setTab("team")}><UsersRound size={16} /> Admin access</button>}
       </div>
 
@@ -186,7 +194,8 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
       {tab === "impact" && <ImpactBoard metrics={(adminContent.data?.impactMetrics ?? []) as ImpactMetricItem[]} onDone={invalidate} />}
       {tab === "text" && <WebsiteTextBoard values={{ ...SITE_TEXT_DEFAULTS, ...(adminContent.data?.siteText ?? {}) } as SiteTextValues} onDone={invalidate} />}
       {tab === "appearance" && <AppearanceBoard appearance={adminContent.data?.appearance as AppearanceItem} cards={(adminContent.data?.serviceCards ?? []) as ServiceCardItem[]} onDone={invalidate} />}
-      {tab === "members" && <ProfilesBoard members={(adminContent.data?.teamMembers ?? []) as TeamMemberItem[]} onDone={invalidate} />}
+      {tab === "members" && <SortableProfilesBoard members={(adminContent.data?.teamMembers ?? []) as TeamMemberItem[]} onDone={invalidate} />}
+      {tab === "requests" && <AdminRequestBoard requests={(accessRequests.data ?? []) as any} />}
       {tab === "team" && primary && <TeamBoard />}
     </div>
   );

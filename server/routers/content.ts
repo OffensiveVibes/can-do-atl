@@ -3,6 +3,8 @@ import { z } from "zod";
 import { isAllowedEditor, isPrimaryAdministrator, normalizeEmail } from "../cms";
 import {
   acceptInviteForUser,
+  approveAccessRequest,
+  createOrRefreshAccessRequest,
   createEvent,
   createHeroSlide,
   createOrRefreshInvite,
@@ -12,10 +14,13 @@ import {
   deleteHeroSlide,
   deleteSiteUpdate,
   deleteTeamMember,
+  denyAccessRequest,
   getAdminContent,
   getInviteForEmail,
   getPublicContent,
   listInvites,
+  listAccessRequests,
+  reorderTeamMembers,
   revokeInvite,
   upsertServiceCards,
   upsertSiteAppearance,
@@ -108,6 +113,8 @@ const siteTextInput = z.object({ entries: z.array(z.object({ textKey: z.enum(SIT
   const keys = entries.map((entry) => entry.textKey);
   if (new Set(keys).size !== SITE_TEXT_KEYS.length || !SITE_TEXT_KEYS.every((key) => keys.includes(key))) ctx.addIssue({ code: "custom", message: "Provide every editable website text field exactly once." });
 }) });
+const profileOrderInput = z.object({ ids: z.array(z.number().int().positive()).min(1).max(200).superRefine((ids, ctx) => { if (new Set(ids).size !== ids.length) ctx.addIssue({ code: "custom", message: "Each team profile can only appear once." }); }) });
+const accessRequestInput = z.object({ email: z.string().trim().email().max(320), note: z.string().trim().max(1_000).optional().transform((value) => value || undefined) });
 
 function parseImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -134,6 +141,7 @@ export const contentRouter = router({
   createTeamMember: editorProcedure.input(editorTeamMemberInput).mutation(({ ctx, input }) => createTeamMember({ ...input, createdBy: ctx.user.id })),
   updateTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorTeamMemberInput })).mutation(({ input }) => updateTeamMember(input.id, input.data)),
   deleteTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTeamMember(input.id)),
+  reorderTeamMembers: editorProcedure.input(profileOrderInput).mutation(({ input }) => reorderTeamMembers(input.ids)),
   updateAppearance: editorProcedure.input(appearanceInput).mutation(({ ctx, input }) => upsertSiteAppearance(input, ctx.user.id)),
   updateSiteText: editorProcedure.input(siteTextInput).mutation(({ ctx, input }) => upsertSiteText(input.entries as Array<{ textKey: import("@shared/siteText").SiteTextKey; value: string }>, ctx.user.id)),
   updateServiceCards: editorProcedure.input(serviceCardsInput).mutation(({ ctx, input }) => upsertServiceCards(input.cards, ctx.user.id)),
@@ -178,4 +186,13 @@ export const accessRouter = router({
     return createOrRefreshInvite(email, ctx.user.id);
   }),
   revoke: primaryAdministratorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => revokeInvite(input.id)),
+  submitRequest: publicProcedure.input(accessRequestInput).mutation(async ({ input }) => {
+    const email = normalizeEmail(input.email);
+    if (isPrimaryAdministrator(email)) throw new TRPCError({ code: "BAD_REQUEST", message: "This is already the primary administrator email." });
+    await createOrRefreshAccessRequest(email, input.note);
+    return { submitted: true };
+  }),
+  listRequests: editorProcedure.query(() => listAccessRequests()),
+  approveRequest: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => approveAccessRequest(input.id, ctx.user.id)),
+  denyRequest: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ ctx, input }) => denyAccessRequest(input.id, ctx.user.id)),
 });

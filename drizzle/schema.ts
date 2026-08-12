@@ -208,6 +208,21 @@ export const adminInvites = mysqlTable(
   (table) => [index("adminInvites_status_idx").on(table.status)],
 );
 
+/** Local requests to become an administrator, reviewed in the staff workspace. */
+export const adminAccessRequests = mysqlTable(
+  "adminAccessRequests",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    email: varchar("email", { length: 320 }).notNull().unique(),
+    note: text("note"),
+    status: mysqlEnum("status", ["pending", "approved", "denied"]).default("pending").notNull(),
+    requestedAt: timestamp("requestedAt").defaultNow().notNull(),
+    decidedBy: int("decidedBy"),
+    decidedAt: timestamp("decidedAt"),
+  },
+  (table) => [index("adminAccessRequests_status_requested_idx").on(table.status, table.requestedAt)],
+);
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type SiteUpdate = typeof siteUpdates.$inferSelect;
@@ -219,3 +234,4 @@ export type SiteAppearance = typeof siteAppearance.$inferSelect;
 export type SiteText = typeof siteText.$inferSelect;
 export type ServiceCard = typeof serviceCards.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;
+export type AdminAccessRequest = typeof adminAccessRequests.$inferSelect;

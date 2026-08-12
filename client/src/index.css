@@ -250,6 +250,17 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
 .website-text-card .form-card-title p { max-width: 42rem; margin: 0.3rem 0 0; color: #6a675f; font-size: 0.78rem; line-height: 1.5; }
 .website-text-fields { display: grid; gap: 0.75rem; }
 .website-text-fields textarea { min-height: 92px; resize: vertical; }
+.access-request-form { display: grid; gap: 0.7rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(44, 44, 44, 0.12); }
+.access-request-form textarea { min-height: 74px; resize: vertical; }
+.team-profile-sortable { cursor: grab; }
+.team-profile-sortable:active { cursor: grabbing; }
+.profile-drag-handle { display: grid; place-items: center; flex: 0 0 auto; width: 2rem; height: 2.75rem; border: 0; border-radius: 0.5rem; color: var(--forest); background: rgba(58, 90, 64, 0.08); cursor: grab; }
+.profile-order-buttons { display: flex; gap: 0.25rem; }
+.profile-order-buttons button { display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border: 1px solid rgba(44, 44, 44, 0.16); border-radius: 0.45rem; color: var(--forest); background: #fff; }
+.profile-order-buttons button:disabled { opacity: 0.35; cursor: not-allowed; }
+.request-actions { display: flex; gap: 0.5rem; align-items: center; }
+.request-actions .admin-button { padding: 0.55rem 0.7rem; font-size: 0.72rem; }
+.request-row small { display: block; margin-top: 0.25rem; color: #77756e; }
 
 .reveal-up { animation: floatIn 680ms var(--ease-out) both; }
 .hero-visual { animation-delay: 100ms; }

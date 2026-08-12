@@ -1,0 +1,14 @@
+import { Check, Loader2, MailCheck, X } from "lucide-react";
+import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+
+type RequestItem = { id: number; email: string; note: string | null; status: "pending" | "approved" | "denied"; requestedAt: Date; decidedAt: Date | null };
+
+export default function AdminRequestBoard({ requests }: { requests: RequestItem[] }) {
+  const utils = trpc.useUtils();
+  const refresh = async () => { await Promise.all([utils.access.listRequests.invalidate(), utils.access.listInvites.invalidate()]); };
+  const approve = trpc.access.approveRequest.useMutation({ onSuccess: async () => { toast.success("Request approved. The email is now on the invite allow-list."); await refresh(); }, onError: (error) => toast.error(error.message || "Request could not be approved.") });
+  const deny = trpc.access.denyRequest.useMutation({ onSuccess: async () => { toast.success("Request denied."); await refresh(); }, onError: (error) => toast.error(error.message || "Request could not be denied.") });
+  const pending = requests.filter((item) => item.status === "pending");
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Administrator requests</p><h2>Review access requests locally.</h2><p>Approving a request adds its email to the invite-only allow-list. No email is sent automatically; the person must later sign in with that exact address and activate their invitation.</p></div><div className="admin-list-card request-list-card"><div className="list-card-title"><div><h3>Pending requests</h3><p className="admin-form-note">Requests are stored only in this site’s workspace.</p></div><span>{pending.length}</span></div>{requests.length ? <div className="content-list">{requests.map((item) => <article className="content-row request-row" key={item.id}><span className="invite-avatar"><MailCheck size={16} /></span><div className="content-row-main"><div><h4>{item.email}</h4><span className={item.status === "approved" ? "status-published" : item.status === "pending" ? "status-draft" : "status-revoked"}>{item.status}</span></div><p>{item.note || "No additional note provided."}</p><small>Requested {new Date(item.requestedAt).toLocaleDateString()}</small></div>{item.status === "pending" && <div className="request-actions"><button className="admin-button admin-button-primary" onClick={() => approve.mutate({ id: item.id })} disabled={approve.isPending || deny.isPending}><Check size={16} /> Approve</button><button className="admin-button admin-button-secondary" onClick={() => deny.mutate({ id: item.id })} disabled={approve.isPending || deny.isPending}><X size={16} /> Deny</button></div>}</article>)}</div> : <div className="admin-empty"><MailCheck size={24} /><h4>No access requests yet</h4><p>New requests will appear here for staff review.</p></div>}</div></section>;
+}

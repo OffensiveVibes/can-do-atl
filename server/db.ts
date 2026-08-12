@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
+  adminAccessRequests,
   adminInvites,
   events,
   heroSlides,
@@ -196,6 +197,17 @@ export async function deleteTeamMember(id: number) {
   await db.delete(teamMembers).where(eq(teamMembers.id, id));
 }
 
+export async function reorderTeamMembers(ids: number[]) {
+  const db = await requireDb();
+  const existing = await db.select({ id: teamMembers.id }).from(teamMembers);
+  if (existing.length !== ids.length || existing.some((member) => !ids.includes(member.id))) {
+    throw new Error("The profile order is out of date. Refresh and try again.");
+  }
+  await db.transaction(async (tx) => {
+    await Promise.all(ids.map((id, position) => tx.update(teamMembers).set({ position }).where(eq(teamMembers.id, id))));
+  });
+}
+
 export async function getInviteForEmail(email: string) {
   const db = await requireDb();
   const rows = await db.select().from(adminInvites).where(eq(adminInvites.email, normalizeEmail(email))).limit(1);
@@ -226,4 +238,34 @@ export async function acceptInviteForUser(email: string, userId: number) {
   await db.update(adminInvites).set({ status: "accepted", acceptedAt: new Date() }).where(eq(adminInvites.id, invite.id));
   await db.update(users).set({ role: "admin" }).where(eq(users.id, userId));
   return true;
+}
+
+export async function createOrRefreshAccessRequest(email: string, note?: string) {
+  const db = await requireDb();
+  const normalizedEmail = normalizeEmail(email);
+  await db.insert(adminAccessRequests).values({ email: normalizedEmail, note, status: "pending" }).onDuplicateKeyUpdate({
+    set: { note, status: "pending", requestedAt: new Date(), decidedBy: null, decidedAt: null },
+  });
+}
+
+export async function listAccessRequests() {
+  const db = await requireDb();
+  return db.select().from(adminAccessRequests).orderBy(desc(adminAccessRequests.requestedAt));
+}
+
+export async function approveAccessRequest(id: number, decidedBy: number) {
+  const db = await requireDb();
+  const request = await db.select().from(adminAccessRequests).where(eq(adminAccessRequests.id, id)).limit(1);
+  if (!request[0]) throw new Error("That administrator request no longer exists.");
+  await db.transaction(async (tx) => {
+    await tx.insert(adminInvites).values({ email: request[0].email, invitedBy: decidedBy, status: "pending" }).onDuplicateKeyUpdate({
+      set: { status: "pending", invitedBy: decidedBy, invitedAt: new Date(), acceptedAt: null },
+    });
+    await tx.update(adminAccessRequests).set({ status: "approved", decidedBy, decidedAt: new Date() }).where(eq(adminAccessRequests.id, id));
+  });
+}
+
+export async function denyAccessRequest(id: number, decidedBy: number) {
+  const db = await requireDb();
+  await db.update(adminAccessRequests).set({ status: "denied", decidedBy, decidedAt: new Date() }).where(eq(adminAccessRequests.id, id));
 }

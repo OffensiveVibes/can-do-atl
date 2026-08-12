@@ -98,3 +98,12 @@
 - [x] Verify editable text and team profiles persist for administrators and remain protected from unauthorized accounts.
 - [x] Add regression coverage for updating a profile with an uploaded image, bio, and valid social links.
 - [x] Verify the protected Website Text and team-profile save flows through the available staff interface or authenticated integration path.
+
+## Profile ordering and administrator requests
+
+- [x] Add accessible drag-and-drop reordering for team profiles in the staff workspace.
+- [x] Add a public local administrator-request form on the staff sign-in page with the required access guidance.
+- [x] Add protected administrator controls to approve or deny local access requests and update the invite allow-list.
+- [x] Verify ordering, request submission, staff decisions, and authorization protections.
+- [x] Verify a reversible team-profile reorder through the authenticated staff UI and public About page.
+- [x] Verify the unauthenticated sign-in guidance and public administrator-request form render correctly.

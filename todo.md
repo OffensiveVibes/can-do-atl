@@ -72,3 +72,14 @@
 - [x] Add placeholder hover images for all three Care is practical cards.
 - [x] Write a step-by-step Cloudflare + Supabase external handoff guide for a non-Manus collaborator.
 - [x] Verify responsive layout, protected appearance APIs, and the Care is practical pointer-based image switch.
+
+## Appearance editor repair and logo update
+
+- [x] Diagnose and fix header and footer background-image upload, save, and display behavior.
+- [x] Create and integrate a scalable Atlanta pencil and grocery-essentials logo mark.
+- [x] Verify the repaired header/footer image settings and new logo across public pages.
+
+## Logo selection and personal deployment guidance
+
+- [x] Generate a varied set of selectable Can Do ATL logo concepts.
+- [x] Document the practical Vercel and GitHub roles, compatibility limits, and recommended personal-project path.

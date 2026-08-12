@@ -38,6 +38,24 @@ describe("content visual settings", () => {
     expect(upsertServiceCards).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ cardKey: "food_drives" })]), 71);
   });
 
+  it("accepts uploaded project paths for header and footer image modes", async () => {
+    upsertSiteAppearance.mockClear();
+    const caller = contentRouter.createCaller(contextFor("mary2000skid@gmail.com", "admin"));
+    await expect(caller.updateAppearance({
+      ...appearance,
+      headerMode: "image",
+      headerImageUrl: "/manus-storage/header-background.png",
+      footerMode: "image",
+      footerImageUrl: "/manus-storage/footer-background.png",
+    })).resolves.toBeUndefined();
+    expect(upsertSiteAppearance).toHaveBeenCalledWith(expect.objectContaining({
+      headerMode: "image",
+      headerImageUrl: "/manus-storage/header-background.png",
+      footerMode: "image",
+      footerImageUrl: "/manus-storage/footer-background.png",
+    }), 71);
+  });
+
   it("rejects a regular account before visual settings can be changed", async () => {
     upsertSiteAppearance.mockClear(); upsertServiceCards.mockClear();
     const caller = contentRouter.createCaller(contextFor("student@example.com", "user"));

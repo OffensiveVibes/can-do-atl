@@ -70,8 +70,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; }
 .brand-lockup { display: inline-flex; align-items: center; gap: 0.55rem; color: var(--green); flex-shrink: 0; }
-.brand-mark-wrap { display: grid; place-items: center; width: 42px; height: 42px; background: var(--green); border-radius: 50% 44% 52% 40%; transform: rotate(-7deg); overflow: hidden; }
-.brand-mark { width: 100%; height: 100%; object-fit: contain; transform: scale(1.3) rotate(7deg); mix-blend-mode: multiply; }
+.brand-mark-wrap { display: grid; place-items: center; width: 42px; height: 42px; background: #edf2e9; border: 1px solid rgba(58, 90, 64, 0.2); border-radius: 50% 44% 52% 40%; transform: rotate(-7deg); overflow: hidden; }
+.brand-mark { width: 100%; height: 100%; object-fit: contain; transform: scale(1.12) rotate(7deg); mix-blend-mode: normal; }
 .brand-name { display: flex; align-items: baseline; gap: 0.24rem; font-family: "Fraunces", Georgia, serif; font-size: 1.35rem; letter-spacing: -0.06em; }
 .brand-name strong { font-weight: 740; }
 .brand-name em { color: var(--terracotta); font-size: 0.85rem; font-weight: 800; font-style: normal; letter-spacing: -0.03em; }

@@ -244,6 +244,12 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
 .button-shape-preview.shape-pill, .button-shape-preview.shape-pill button { border-radius: 999px; }
 .button-shape-preview.shape-soft, .button-shape-preview.shape-soft button { border-radius: 1rem; }
 .button-shape-preview.shape-square, .button-shape-preview.shape-square button { border-radius: 0.24rem; }
+.website-text-groups { display: grid; gap: 1rem; }
+.website-text-card { padding: 1.25rem; border: 1px solid rgba(44, 44, 44, 0.12); border-radius: 1rem; background: rgba(255, 255, 255, 0.66); box-shadow: 0 9px 26px rgba(44, 44, 44, 0.05); }
+.website-text-card .form-card-title { align-items: flex-start; margin-bottom: 1rem; }
+.website-text-card .form-card-title p { max-width: 42rem; margin: 0.3rem 0 0; color: #6a675f; font-size: 0.78rem; line-height: 1.5; }
+.website-text-fields { display: grid; gap: 0.75rem; }
+.website-text-fields textarea { min-height: 92px; resize: vertical; }
 
 .reveal-up { animation: floatIn 680ms var(--ease-out) both; }
 .hero-visual { animation-delay: 100ms; }
@@ -255,6 +261,8 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
   .hero-section { padding: 5.4rem 0 3.7rem; }
   .hero-actions .button { padding-inline: 1.35rem; }
   .brand-editor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .website-text-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .website-text-fields label:has(textarea) { grid-column: span 2; }
   .section-heading { grid-template-columns: 1.2fr 0.8fr; align-items: end; gap: 2rem; margin-bottom: 3.1rem; }
   .initiative-grid { grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
   .initiative-card { min-height: 465px; }

@@ -163,6 +163,19 @@ export const siteAppearance = mysqlTable("siteAppearance", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Fixed public wording and story quotations, managed from the protected Website Text workspace. */
+export const siteText = mysqlTable(
+  "siteText",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    textKey: varchar("textKey", { length: 80 }).notNull().unique(),
+    value: text("value").notNull(),
+    updatedBy: int("updatedBy").notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [index("siteText_key_idx").on(table.textKey)],
+);
+
 /** Image pairs used by the three public Care is practical service cards. */
 export const serviceCards = mysqlTable(
   "serviceCards",
@@ -203,5 +216,6 @@ export type HeroSlide = typeof heroSlides.$inferSelect;
 export type ImpactMetric = typeof impactMetrics.$inferSelect;
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type SiteAppearance = typeof siteAppearance.$inferSelect;
+export type SiteText = typeof siteText.$inferSelect;
 export type ServiceCard = typeof serviceCards.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;

@@ -2,6 +2,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
+import { SITE_TEXT_DEFAULTS, type SiteTextKey, type SiteTextValues } from "@shared/siteText";
 import { toast } from "sonner";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -35,7 +36,7 @@ import {
   Youtube,
 } from "lucide-react";
 
-type Tab = "events" | "slides" | "updates" | "impact" | "appearance" | "members" | "team";
+type Tab = "events" | "slides" | "updates" | "impact" | "text" | "appearance" | "members" | "team";
 type SlideItem = { id: number; eyebrow: string; headline: string; accent: string | null; body: string; imageUrl: string; imageKey: string | null; imageAlt: string; volunteerHref: string | null; donateHref: string | null; position: number; isPublished: boolean };
 type EventItem = { id: number; title: string; campus: string; details: string | null; startsAt: Date; endsAt: Date | null; linkHref: string | null; isPublished: boolean };
 type UpdateItem = { id: number; title: string; body: string; linkLabel: string | null; linkHref: string | null; status: "draft" | "published" };
@@ -173,6 +174,7 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
         <button role="tab" aria-selected={tab === "slides"} className={tab === "slides" ? "selected" : ""} onClick={() => setTab("slides")}><Images size={16} /> Hero carousel</button>
         <button role="tab" aria-selected={tab === "updates"} className={tab === "updates" ? "selected" : ""} onClick={() => setTab("updates")}><FileText size={16} /> Updates</button>
         <button role="tab" aria-selected={tab === "impact"} className={tab === "impact" ? "selected" : ""} onClick={() => setTab("impact")}><BarChart3 size={16} /> Impact</button>
+        <button role="tab" aria-selected={tab === "text"} className={tab === "text" ? "selected" : ""} onClick={() => setTab("text")}><FileText size={16} /> Website text</button>
         <button role="tab" aria-selected={tab === "appearance"} className={tab === "appearance" ? "selected" : ""} onClick={() => setTab("appearance")}><Palette size={16} /> Design &amp; brand</button>
         <button role="tab" aria-selected={tab === "members"} className={tab === "members" ? "selected" : ""} onClick={() => setTab("members")}><UsersRound size={16} /> Team profiles</button>
         {primary && <button role="tab" aria-selected={tab === "team"} className={tab === "team" ? "selected" : ""} onClick={() => setTab("team")}><UsersRound size={16} /> Admin access</button>}
@@ -182,6 +184,7 @@ function AdminWorkspace({ primary }: { primary: boolean }) {
       {tab === "slides" && <SlidesBoard slides={adminContent.data?.slides ?? []} onDone={invalidate} />}
       {tab === "updates" && <UpdatesBoard updates={adminContent.data?.updates ?? []} onDone={invalidate} />}
       {tab === "impact" && <ImpactBoard metrics={(adminContent.data?.impactMetrics ?? []) as ImpactMetricItem[]} onDone={invalidate} />}
+      {tab === "text" && <WebsiteTextBoard values={{ ...SITE_TEXT_DEFAULTS, ...(adminContent.data?.siteText ?? {}) } as SiteTextValues} onDone={invalidate} />}
       {tab === "appearance" && <AppearanceBoard appearance={adminContent.data?.appearance as AppearanceItem} cards={(adminContent.data?.serviceCards ?? []) as ServiceCardItem[]} onDone={invalidate} />}
       {tab === "members" && <ProfilesBoard members={(adminContent.data?.teamMembers ?? []) as TeamMemberItem[]} onDone={invalidate} />}
       {tab === "team" && primary && <TeamBoard />}
@@ -194,6 +197,42 @@ const impactNames: Record<ImpactMetricKey, string> = {
   clothing_items: "Clothing items recirculated",
   student_volunteers: "Student volunteers",
 };
+
+const websiteTextGroups: Array<{ title: string; copy: string; fields: Array<{ key: SiteTextKey; label: string; multiline?: boolean }> }> = [
+  { title: "Home page sections", copy: "Update the core homepage headings and supporting text.", fields: [
+    { key: "heroNote", label: "Hero note" }, { key: "whatWeDoKicker", label: "What We Do label" }, { key: "whatWeDoHeading", label: "What We Do heading" }, { key: "whatWeDoBody", label: "What We Do description", multiline: true },
+    { key: "impactKicker", label: "Impact label" }, { key: "impactHeading", label: "Impact heading" }, { key: "impactBody", label: "Impact description", multiline: true }, { key: "impactBadge", label: "Impact badge" },
+    { key: "eventsKicker", label: "Events label" }, { key: "eventsHeading", label: "Events heading" }, { key: "eventsBody", label: "Events description", multiline: true },
+  ] },
+  { title: "Stories and quotations", copy: "Edit the three story-card quotes that rotate on the public homepage.", fields: [
+    { key: "storiesKicker", label: "Stories label" }, { key: "storiesHeading", label: "Stories heading" }, { key: "storiesBody", label: "Stories introduction", multiline: true },
+    { key: "storyOneTitle", label: "Story 1 title" }, { key: "storyOneBody", label: "Story 1 quote", multiline: true }, { key: "storyOneContext", label: "Story 1 caption" },
+    { key: "storyTwoTitle", label: "Story 2 title" }, { key: "storyTwoBody", label: "Story 2 quote", multiline: true }, { key: "storyTwoContext", label: "Story 2 caption" },
+    { key: "storyThreeTitle", label: "Story 3 title" }, { key: "storyThreeBody", label: "Story 3 quote", multiline: true }, { key: "storyThreeContext", label: "Story 3 caption" },
+  ] },
+  { title: "Calls to action and footer", copy: "Set the action panel wording and the public footer text.", fields: [
+    { key: "actionKicker", label: "Action panel label" }, { key: "actionHeading", label: "Action panel heading" }, { key: "actionBody", label: "Action panel description", multiline: true },
+    { key: "volunteerLabel", label: "Volunteer button label" }, { key: "volunteerSubtext", label: "Volunteer button subtext" }, { key: "essentialsLabel", label: "Essentials button label" }, { key: "essentialsSubtext", label: "Essentials button subtext" },
+    { key: "footerDescription", label: "Footer description", multiline: true }, { key: "socialHelper", label: "Social prompt" }, { key: "footerTagline", label: "Footer tagline" },
+  ] },
+  { title: "About Us page", copy: "Manage the public About page introduction, team heading, and volunteer invitation.", fields: [
+    { key: "aboutHeading", label: "About heading" }, { key: "aboutIntro", label: "About introduction", multiline: true }, { key: "teamKicker", label: "Team label" }, { key: "teamHeading", label: "Team heading" }, { key: "teamIntro", label: "Team introduction", multiline: true },
+    { key: "joinKicker", label: "Join label" }, { key: "joinHeading", label: "Join heading" }, { key: "joinBody", label: "Join description", multiline: true },
+  ] },
+];
+
+function WebsiteTextBoard({ values, onDone }: { values: SiteTextValues; onDone: () => Promise<void> }) {
+  const [draft, setDraft] = useState<SiteTextValues>(values);
+  const update = trpc.content.updateSiteText.useMutation({ onSuccess: async () => { toast.success("Website text is live on the public site."); await onDone(); }, onError: (error) => toast.error(error.message || "Website text could not be saved.") });
+  useEffect(() => setDraft(values), [values]);
+  const setValue = (key: SiteTextKey, value: string) => setDraft((current) => ({ ...current, [key]: value }));
+  const save = () => {
+    const entries = Object.entries(draft).map(([textKey, value]) => ({ textKey: textKey as SiteTextKey, value: value.trim() }));
+    if (entries.some((entry) => !entry.value)) return toast.error("Keep every public text field filled in so visitors never see a blank section.");
+    update.mutate({ entries });
+  };
+  return <section className="admin-board"><div className="admin-board-intro"><p className="admin-kicker">Website copy</p><h2>Change the words without touching code.</h2><p>Use these simple fields for general public wording, quotes, calls to action, and About Us copy. Events, updates, carousel slides, impact counts, team profiles, and visual settings stay in their own workspace tabs.</p></div><div className="website-text-groups">{websiteTextGroups.map((group) => <article className="website-text-card" key={group.title}><div className="form-card-title"><div><h3>{group.title}</h3><p>{group.copy}</p></div><FileText size={18} /></div><div className="website-text-fields">{group.fields.map((field) => <label key={field.key}>{field.label}{field.multiline ? <textarea value={draft[field.key]} onChange={(event) => setValue(field.key, event.target.value)} /> : <input value={draft[field.key]} onChange={(event) => setValue(field.key, event.target.value)} />}</label>)}</div></article>)}</div><div className="appearance-save-row"><p>Every field is public-facing. Read each change once before saving.</p><button className="admin-button admin-button-primary" onClick={save} disabled={update.isPending}>{update.isPending ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />} Save website text</button></div></section>;
+}
 
 function ImpactBoard({ metrics, onDone }: { metrics: ImpactMetricItem[]; onDone: () => Promise<void> }) {
   const [draft, setDraft] = useState<ImpactMetricItem[]>(metrics);
@@ -283,7 +322,7 @@ function UpdatesBoard({ updates, onDone }: { updates: UpdateItem[]; onDone: () =
 function ProfilesBoard({ members, onDone }: { members: TeamMemberItem[]; onDone: () => Promise<void> }) {
   const [editing, setEditing] = useState<TeamMemberItem | null>(null);
   const [name, setName] = useState("Team member slot"); const [role, setRole] = useState("Add a role in Admin"); const [bio, setBio] = useState("This is an editable placeholder profile. Add a photo, name, role, introduction, and social links from the staff workspace."); const [imageUrl, setImageUrl] = useState(""); const [imageKey, setImageKey] = useState(""); const [linkedinUrl, setLinkedinUrl] = useState(""); const [instagramUrl, setInstagramUrl] = useState(""); const [facebookUrl, setFacebookUrl] = useState(""); const [tiktokUrl, setTiktokUrl] = useState(""); const [youtubeUrl, setYoutubeUrl] = useState(""); const [websiteUrl, setWebsiteUrl] = useState(""); const [position, setPosition] = useState(members.length); const [isPublished, setIsPublished] = useState(true);
-  const upload = trpc.content.uploadTeamImage.useMutation(); const create = trpc.content.createTeamMember.useMutation({ onSuccess: async () => { toast.success("Team profile added."); clear(); await onDone(); } }); const update = trpc.content.updateTeamMember.useMutation({ onSuccess: async () => { toast.success("Team profile saved."); clear(); await onDone(); } }); const remove = trpc.content.deleteTeamMember.useMutation({ onSuccess: onDone }); const busy = upload.isPending || create.isPending || update.isPending;
+  const upload = trpc.content.uploadTeamImage.useMutation({ onError: (error) => toast.error(error.message || "Profile image upload failed.") }); const create = trpc.content.createTeamMember.useMutation({ onSuccess: async () => { toast.success("Team profile added."); clear(); await onDone(); }, onError: (error) => toast.error(error.message || "Profile could not be added. Use complete https:// links for social fields.") }); const update = trpc.content.updateTeamMember.useMutation({ onSuccess: async () => { toast.success("Team profile saved."); clear(); await onDone(); }, onError: (error) => toast.error(error.message || "Profile could not be saved. Use complete https:// links for social fields.") }); const remove = trpc.content.deleteTeamMember.useMutation({ onSuccess: onDone, onError: (error) => toast.error(error.message || "Profile could not be removed.") }); const busy = upload.isPending || create.isPending || update.isPending;
   const clear = () => { setEditing(null); setName("Team member slot"); setRole("Add a role in Admin"); setBio("This is an editable placeholder profile. Add a photo, name, role, introduction, and social links from the staff workspace."); setImageUrl(""); setImageKey(""); setLinkedinUrl(""); setInstagramUrl(""); setFacebookUrl(""); setTiktokUrl(""); setYoutubeUrl(""); setWebsiteUrl(""); setPosition(members.length); setIsPublished(true); };
   const edit = (member: TeamMemberItem) => { setEditing(member); setName(member.name); setRole(member.role); setBio(member.bio ?? ""); setImageUrl(member.imageUrl ?? ""); setImageKey(member.imageKey ?? ""); setLinkedinUrl(member.linkedinUrl ?? ""); setInstagramUrl(member.instagramUrl ?? ""); setFacebookUrl(member.facebookUrl ?? ""); setTiktokUrl(member.tiktokUrl ?? ""); setYoutubeUrl(member.youtubeUrl ?? ""); setWebsiteUrl(member.websiteUrl ?? ""); setPosition(member.position); setIsPublished(member.isPublished); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const chooseFile = async (file?: File) => { if (!file) return; try { const dataUrl = await readImageFile(file); const uploaded = await upload.mutateAsync({ dataUrl }); setImageUrl(uploaded.url); setImageKey(uploaded.key); toast.success("Profile image uploaded. Save the profile to publish it."); } catch (error) { toast.error(error instanceof Error ? error.message : "Upload failed."); } };

@@ -8,6 +8,7 @@ import {
   InsertUser,
   serviceCards,
   siteAppearance,
+  siteText,
   siteUpdates,
   teamMembers,
   users,
@@ -16,6 +17,7 @@ import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from ".
 import { DEFAULT_IMPACT_METRICS, type ImpactMetricKey } from "./impact";
 import { DEFAULT_TEAM_MEMBERS } from "./team";
 import { DEFAULT_APPEARANCE, DEFAULT_SERVICE_CARDS, type AppearanceMode, type ButtonShape } from "./appearance";
+import { SITE_TEXT_DEFAULTS, type SiteTextKey, type SiteTextValues } from "@shared/siteText";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -75,7 +77,7 @@ export async function getUserByOpenId(openId: string) {
 export async function getPublicContent() {
   const db = await requireDb();
   const now = new Date();
-  const [slides, upcomingEvents, updates, metrics, members, appearanceRows, cards] = await Promise.all([
+  const [slides, upcomingEvents, updates, metrics, members, appearanceRows, cards, textRows] = await Promise.all([
     db.select().from(heroSlides).where(eq(heroSlides.isPublished, true)).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).where(and(eq(events.isPublished, true), gte(events.startsAt, now))).orderBy(asc(events.startsAt)).limit(6),
     db.select().from(siteUpdates).where(eq(siteUpdates.status, "published")).orderBy(desc(siteUpdates.createdAt)).limit(3),
@@ -83,13 +85,15 @@ export async function getPublicContent() {
     db.select().from(teamMembers).where(eq(teamMembers.isPublished, true)).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
     db.select().from(siteAppearance).limit(1),
     db.select().from(serviceCards).orderBy(asc(serviceCards.position), asc(serviceCards.id)),
+    db.select().from(siteText),
   ]);
-  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS };
+  const text = { ...SITE_TEXT_DEFAULTS, ...Object.fromEntries(textRows.map((item) => [item.textKey, item.value])) } as SiteTextValues;
+  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS, siteText: text };
 }
 
 export async function getAdminContent() {
   const db = await requireDb();
-  const [slides, allEvents, updates, metrics, members, appearanceRows, cards] = await Promise.all([
+  const [slides, allEvents, updates, metrics, members, appearanceRows, cards, textRows] = await Promise.all([
     db.select().from(heroSlides).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).orderBy(asc(events.startsAt)),
     db.select().from(siteUpdates).orderBy(desc(siteUpdates.updatedAt)),
@@ -97,8 +101,10 @@ export async function getAdminContent() {
     db.select().from(teamMembers).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
     db.select().from(siteAppearance).limit(1),
     db.select().from(serviceCards).orderBy(asc(serviceCards.position), asc(serviceCards.id)),
+    db.select().from(siteText),
   ]);
-  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS };
+  const text = { ...SITE_TEXT_DEFAULTS, ...Object.fromEntries(textRows.map((item) => [item.textKey, item.value])) } as SiteTextValues;
+  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS, siteText: text };
 }
 
 export type AppearanceInput = {
@@ -111,6 +117,11 @@ export type AppearanceInput = {
 export async function upsertSiteAppearance(input: AppearanceInput, updatedBy: number) {
   const db = await requireDb();
   await db.insert(siteAppearance).values({ id: 1, ...input, updatedBy }).onDuplicateKeyUpdate({ set: { ...input, updatedBy } });
+}
+
+export async function upsertSiteText(entries: Array<{ textKey: SiteTextKey; value: string }>, updatedBy: number) {
+  const db = await requireDb();
+  await Promise.all(entries.map((entry) => db.insert(siteText).values({ ...entry, updatedBy }).onDuplicateKeyUpdate({ set: { value: entry.value, updatedBy } })));
 }
 
 export async function upsertServiceCards(cards: Array<{ cardKey: string; imageUrl: string; imageKey?: string; hoverImageUrl: string; hoverImageKey?: string; imageAlt: string; position: number }>, updatedBy: number) {

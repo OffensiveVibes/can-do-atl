@@ -89,3 +89,12 @@
 - [x] Add a protected staff control to upload and change the public site logo and browser-tab icon.
 - [x] Add practical, protected seasonal-style controls for public colors, button treatment, and text labels.
 - [x] Verify the customization controls update public pages and reject non-administrator access.
+
+## Website text and profile reliability
+
+- [x] Add a protected Website Text workspace for the site’s fixed public wording and stories.
+- [x] Connect editable website text fields to the public home and About pages.
+- [x] Diagnose and repair team-profile create, update, link, bio, and image-save behavior.
+- [x] Verify editable text and team profiles persist for administrators and remain protected from unauthorized accounts.
+- [x] Add regression coverage for updating a profile with an uploaded image, bio, and valid social links.
+- [x] Verify the protected Website Text and team-profile save flows through the available staff interface or authenticated integration path.

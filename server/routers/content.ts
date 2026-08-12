@@ -22,6 +22,7 @@ import {
   updateEvent,
   updateHeroSlide,
   upsertImpactMetrics,
+  upsertSiteText,
   updateSiteUpdate,
   updateTeamMember,
 } from "../db";
@@ -30,6 +31,7 @@ import { APPEARANCE_MODES, BUTTON_SHAPES, SERVICE_CARD_KEYS } from "../appearanc
 import { editorProcedure, primaryAdministratorProcedure } from "../authorization";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
+import { SITE_TEXT_KEYS } from "@shared/siteText";
 
 const optionalText = z.string().trim().max(512).optional().transform((value) => value || undefined);
 const editorEventInput = z.object({
@@ -76,11 +78,14 @@ const impactMetricsInput = z.object({
   }),
 });
 const optionalUrl = z.string().trim().url().max(512).optional().or(z.literal("")).transform((value) => value || undefined);
+const colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex color.");
+const managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
+const optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || undefined);
 const editorTeamMemberInput = z.object({
   name: z.string().trim().min(2).max(120),
   role: z.string().trim().min(2).max(160),
   bio: z.string().trim().max(5000).optional().transform((value) => value || undefined),
-  imageUrl: optionalUrl,
+  imageUrl: optionalImageUrl,
   imageKey: z.string().trim().max(512).optional().transform((value) => value || undefined),
   linkedinUrl: optionalUrl,
   instagramUrl: optionalUrl,
@@ -91,9 +96,6 @@ const editorTeamMemberInput = z.object({
   position: z.number().int().min(0).max(999),
   isPublished: z.boolean(),
 });
-const colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex color.");
-const managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
-const optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || undefined);
 const appearanceInput = z.object({
   siteName: z.string().trim().min(2).max(80), tabTitle: z.string().trim().min(2).max(100), logoUrl: optionalImageUrl, logoKey: optionalText, logoAlt: z.string().trim().min(3).max(255), primaryColor: colorInput, accentColor: colorInput, highlightColor: colorInput, inkColor: colorInput, buttonShape: z.enum(BUTTON_SHAPES),
   pageMode: z.enum(APPEARANCE_MODES), pageColor: colorInput, pageGradientFrom: colorInput, pageGradientTo: colorInput, pageImageUrl: optionalImageUrl, pageImageKey: optionalText, pageImageBlur: z.number().int().min(0).max(24), pageOverlayOpacity: z.number().int().min(0).max(92),
@@ -102,6 +104,10 @@ const appearanceInput = z.object({
 });
 const serviceCardInput = z.object({ cardKey: z.enum(SERVICE_CARD_KEYS), imageUrl: managedImageUrl, imageKey: optionalText, hoverImageUrl: managedImageUrl, hoverImageKey: optionalText, imageAlt: z.string().trim().min(3).max(255), position: z.number().int().min(0).max(2) });
 const serviceCardsInput = z.object({ cards: z.array(serviceCardInput).length(3).superRefine((cards, ctx) => { const keys = cards.map((card) => card.cardKey); if (new Set(keys).size !== SERVICE_CARD_KEYS.length || !SERVICE_CARD_KEYS.every((key) => keys.includes(key))) ctx.addIssue({ code: "custom", message: "Provide each service card exactly once." }); }) });
+const siteTextInput = z.object({ entries: z.array(z.object({ textKey: z.enum(SITE_TEXT_KEYS as [string, ...string[]]), value: z.string().trim().min(1).max(5_000) })).length(SITE_TEXT_KEYS.length).superRefine((entries, ctx) => {
+  const keys = entries.map((entry) => entry.textKey);
+  if (new Set(keys).size !== SITE_TEXT_KEYS.length || !SITE_TEXT_KEYS.every((key) => keys.includes(key))) ctx.addIssue({ code: "custom", message: "Provide every editable website text field exactly once." });
+}) });
 
 function parseImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -129,6 +135,7 @@ export const contentRouter = router({
   updateTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorTeamMemberInput })).mutation(({ input }) => updateTeamMember(input.id, input.data)),
   deleteTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTeamMember(input.id)),
   updateAppearance: editorProcedure.input(appearanceInput).mutation(({ ctx, input }) => upsertSiteAppearance(input, ctx.user.id)),
+  updateSiteText: editorProcedure.input(siteTextInput).mutation(({ ctx, input }) => upsertSiteText(input.entries as Array<{ textKey: import("@shared/siteText").SiteTextKey; value: string }>, ctx.user.id)),
   updateServiceCards: editorProcedure.input(serviceCardsInput).mutation(({ ctx, input }) => upsertServiceCards(input.cards, ctx.user.id)),
   uploadHeroImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);

@@ -125,6 +125,16 @@ export const teamMembers = mysqlTable(
 /** Singleton visual preferences for the page canvas, header, and footer. */
 export const siteAppearance = mysqlTable("siteAppearance", {
   id: int("id").primaryKey(),
+  siteName: varchar("siteName", { length: 80 }).default("Can Do ATL").notNull(),
+  tabTitle: varchar("tabTitle", { length: 100 }).default("Can Do ATL — Student-led mutual aid").notNull(),
+  logoUrl: varchar("logoUrl", { length: 512 }).default("/manus-storage/cando-atlanta-pencil-logo_ae816652.png").notNull(),
+  logoKey: varchar("logoKey", { length: 512 }),
+  logoAlt: varchar("logoAlt", { length: 255 }).default("Atlanta pencil surrounded by grocery essentials").notNull(),
+  primaryColor: varchar("primaryColor", { length: 32 }).default("#3A5A40").notNull(),
+  accentColor: varchar("accentColor", { length: 32 }).default("#BC6C25").notNull(),
+  highlightColor: varchar("highlightColor", { length: 32 }).default("#F1CB6B").notNull(),
+  inkColor: varchar("inkColor", { length: 32 }).default("#2C2C2C").notNull(),
+  buttonShape: varchar("buttonShape", { length: 16 }).default("pill").notNull(),
   pageMode: varchar("pageMode", { length: 16 }).notNull(),
   pageColor: varchar("pageColor", { length: 32 }).notNull(),
   pageGradientFrom: varchar("pageGradientFrom", { length: 32 }).notNull(),

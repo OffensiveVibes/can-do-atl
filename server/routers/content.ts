@@ -26,7 +26,7 @@ import {
   updateTeamMember,
 } from "../db";
 import { IMPACT_METRIC_KEYS } from "../impact";
-import { APPEARANCE_MODES, SERVICE_CARD_KEYS } from "../appearance";
+import { APPEARANCE_MODES, BUTTON_SHAPES, SERVICE_CARD_KEYS } from "../appearance";
 import { editorProcedure, primaryAdministratorProcedure } from "../authorization";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
@@ -95,6 +95,7 @@ const colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex co
 const managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
 const optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || undefined);
 const appearanceInput = z.object({
+  siteName: z.string().trim().min(2).max(80), tabTitle: z.string().trim().min(2).max(100), logoUrl: optionalImageUrl, logoKey: optionalText, logoAlt: z.string().trim().min(3).max(255), primaryColor: colorInput, accentColor: colorInput, highlightColor: colorInput, inkColor: colorInput, buttonShape: z.enum(BUTTON_SHAPES),
   pageMode: z.enum(APPEARANCE_MODES), pageColor: colorInput, pageGradientFrom: colorInput, pageGradientTo: colorInput, pageImageUrl: optionalImageUrl, pageImageKey: optionalText, pageImageBlur: z.number().int().min(0).max(24), pageOverlayOpacity: z.number().int().min(0).max(92),
   headerMode: z.enum(APPEARANCE_MODES), headerColor: colorInput, headerGradientFrom: colorInput, headerGradientTo: colorInput, headerImageUrl: optionalImageUrl, headerImageKey: optionalText, headerImageBlur: z.number().int().min(0).max(24), headerOverlayOpacity: z.number().int().min(0).max(92),
   footerMode: z.enum(APPEARANCE_MODES), footerColor: colorInput, footerGradientFrom: colorInput, footerGradientTo: colorInput, footerImageUrl: optionalImageUrl, footerImageKey: optionalText, footerImageBlur: z.number().int().min(0).max(24), footerOverlayOpacity: z.number().int().min(0).max(92),
@@ -140,6 +141,10 @@ export const contentRouter = router({
   uploadAppearanceImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000), surface: z.enum(["page", "header", "footer"]) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);
     return storagePut(`appearance/${input.surface}-${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
+  }),
+  uploadBrandImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
+    const image = parseImageDataUrl(input.dataUrl);
+    return storagePut(`branding/logo-${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
   }),
   uploadServiceCardImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000), cardKey: z.enum(SERVICE_CARD_KEYS), state: z.enum(["default", "hover"]) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);

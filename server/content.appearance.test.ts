@@ -18,6 +18,7 @@ function contextFor(email: string, role: "admin" | "user"): TrpcContext {
 }
 
 const appearance = {
+  siteName: "Can Do ATL", tabTitle: "Can Do ATL — Student-led mutual aid", logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png", logoKey: "", logoAlt: "Atlanta pencil surrounded by grocery essentials", primaryColor: "#3A5A40", accentColor: "#BC6C25", highlightColor: "#F1CB6B", inkColor: "#2C2C2C", buttonShape: "pill" as const,
   pageMode: "solid" as const, pageColor: "#F7F3EB", pageGradientFrom: "#F7F3EB", pageGradientTo: "#E7EDE1", pageImageUrl: "", pageImageKey: "", pageImageBlur: 0, pageOverlayOpacity: 24,
   headerMode: "solid" as const, headerColor: "#F7F3EB", headerGradientFrom: "#F7F3EB", headerGradientTo: "#F7F3EB", headerImageUrl: "", headerImageKey: "", headerImageBlur: 0, headerOverlayOpacity: 8,
   footerMode: "solid" as const, footerColor: "#2C2C2C", footerGradientFrom: "#2C2C2C", footerGradientTo: "#3A5A40", footerImageUrl: "", footerImageKey: "", footerImageBlur: 0, footerOverlayOpacity: 36,
@@ -34,7 +35,7 @@ describe("content visual settings", () => {
     const caller = contentRouter.createCaller(contextFor("mary2000skid@gmail.com", "admin"));
     await expect(caller.updateAppearance(appearance)).resolves.toBeUndefined();
     await expect(caller.updateServiceCards({ cards })).resolves.toBeUndefined();
-    expect(upsertSiteAppearance).toHaveBeenCalledWith(expect.objectContaining({ pageColor: "#F7F3EB" }), 71);
+    expect(upsertSiteAppearance).toHaveBeenCalledWith(expect.objectContaining({ pageColor: "#F7F3EB", logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png", buttonShape: "pill" }), 71);
     expect(upsertServiceCards).toHaveBeenCalledWith(expect.arrayContaining([expect.objectContaining({ cardKey: "food_drives" })]), 71);
   });
 
@@ -61,6 +62,20 @@ describe("content visual settings", () => {
     const caller = contentRouter.createCaller(contextFor("student@example.com", "user"));
     await expect(caller.updateAppearance(appearance)).rejects.toMatchObject({ code: "FORBIDDEN" });
     await expect(caller.updateServiceCards({ cards })).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(caller.uploadBrandImage({ dataUrl: "data:image/png;base64,iVBORw0KGgo=" })).rejects.toMatchObject({ code: "FORBIDDEN" });
     expect(upsertSiteAppearance).not.toHaveBeenCalled(); expect(upsertServiceCards).not.toHaveBeenCalled();
+  });
+
+  it("validates the uploaded logo and allowed public button shapes", async () => {
+    const caller = contentRouter.createCaller(contextFor("mary2000skid@gmail.com", "admin"));
+    await expect(caller.updateAppearance({
+      ...appearance,
+      siteName: "Can Do ATL Fall Drive",
+      tabTitle: "Can Do ATL Fall Drive",
+      logoUrl: "/manus-storage/fall-logo.png",
+      logoAlt: "Can Do ATL fall campaign logo",
+      buttonShape: "soft",
+    })).resolves.toBeUndefined();
+    await expect(caller.updateAppearance({ ...appearance, buttonShape: "circle" as "pill" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

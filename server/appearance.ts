@@ -1,9 +1,21 @@
 export const APPEARANCE_MODES = ["solid", "gradient", "image"] as const;
 export type AppearanceMode = (typeof APPEARANCE_MODES)[number];
+export const BUTTON_SHAPES = ["pill", "soft", "square"] as const;
+export type ButtonShape = (typeof BUTTON_SHAPES)[number];
 export const SERVICE_CARD_KEYS = ["food_drives", "clothing_closet", "community_outreach"] as const;
 export type ServiceCardKey = (typeof SERVICE_CARD_KEYS)[number];
 
 export const DEFAULT_APPEARANCE = {
+  siteName: "Can Do ATL",
+  tabTitle: "Can Do ATL — Student-led mutual aid",
+  logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png",
+  logoKey: null,
+  logoAlt: "Atlanta pencil surrounded by grocery essentials",
+  primaryColor: "#3A5A40",
+  accentColor: "#BC6C25",
+  highlightColor: "#F1CB6B",
+  inkColor: "#2C2C2C",
+  buttonShape: "pill" as ButtonShape,
   pageMode: "solid" as AppearanceMode,
   pageColor: "#F7F3EB",
   pageGradientFrom: "#F7F3EB",

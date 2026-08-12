@@ -83,3 +83,9 @@
 
 - [x] Generate a varied set of selectable Can Do ATL logo concepts.
 - [x] Document the practical Vercel and GitHub roles, compatibility limits, and recommended personal-project path.
+
+## Staff front-end customization
+
+- [x] Add a protected staff control to upload and change the public site logo and browser-tab icon.
+- [x] Add practical, protected seasonal-style controls for public colors, button treatment, and text labels.
+- [x] Verify the customization controls update public pages and reject non-administrator access.

@@ -15,7 +15,7 @@ import {
 import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from "./cms";
 import { DEFAULT_IMPACT_METRICS, type ImpactMetricKey } from "./impact";
 import { DEFAULT_TEAM_MEMBERS } from "./team";
-import { DEFAULT_APPEARANCE, DEFAULT_SERVICE_CARDS, type AppearanceMode } from "./appearance";
+import { DEFAULT_APPEARANCE, DEFAULT_SERVICE_CARDS, type AppearanceMode, type ButtonShape } from "./appearance";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -102,6 +102,7 @@ export async function getAdminContent() {
 }
 
 export type AppearanceInput = {
+  siteName: string; tabTitle: string; logoUrl?: string; logoKey?: string; logoAlt: string; primaryColor: string; accentColor: string; highlightColor: string; inkColor: string; buttonShape: ButtonShape;
   pageMode: AppearanceMode; pageColor: string; pageGradientFrom: string; pageGradientTo: string; pageImageUrl?: string; pageImageKey?: string; pageImageBlur: number; pageOverlayOpacity: number;
   headerMode: AppearanceMode; headerColor: string; headerGradientFrom: string; headerGradientTo: string; headerImageUrl?: string; headerImageKey?: string; headerImageBlur: number; headerOverlayOpacity: number;
   footerMode: AppearanceMode; footerColor: string; footerGradientFrom: string; footerGradientTo: string; footerImageUrl?: string; footerImageKey?: string; footerImageBlur: number; footerOverlayOpacity: number;

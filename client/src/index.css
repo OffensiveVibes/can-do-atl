@@ -203,7 +203,7 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
 .action-copy h2 { max-width: 580px; color: var(--cream); }
 .action-copy > p:last-child { max-width: 600px; margin: 1rem 0 1.75rem; color: rgba(247, 243, 235, 0.9); font-size: 0.89rem; line-height: 1.7; }
 .action-options { position: relative; z-index: 1; display: grid; gap: 0.72rem; }
-.action-option { display: grid; grid-template-columns: 44px 1fr 24px; align-items: center; gap: 0.75rem; min-height: 82px; padding: 0.75rem; background: var(--cream); color: var(--green); box-shadow: 3px 4px 0 var(--charcoal); transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+.action-option { display: grid; grid-template-columns: 44px 1fr 24px; align-items: center; gap: 0.75rem; min-height: 82px; padding: 0.75rem; border-radius: var(--frontend-button-radius, 0); background: var(--cream); color: var(--green); box-shadow: 3px 4px 0 var(--charcoal); transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
 .action-option:hover { transform: translate(-1px, -3px); box-shadow: 5px 7px 0 var(--charcoal); }
 .option-icon { display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; background: var(--sage); }
 .donate-option .option-icon { background: var(--butter); }
@@ -227,6 +227,24 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
 .social-helper { margin: 0.85rem 0 0; color: rgba(247, 243, 235, 0.54); font-size: 0.64rem; }
 .footer-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; padding: 1.1rem 0; border-top: 1px solid rgba(247, 243, 235, 0.16); color: rgba(247, 243, 235, 0.52); font-size: 0.66rem; }
 
+.site-branding-layer[data-button-shape="pill"] { --frontend-button-radius: 999px; }
+.site-branding-layer[data-button-shape="soft"] { --frontend-button-radius: 1.15rem; }
+.site-branding-layer[data-button-shape="square"] { --frontend-button-radius: 0.28rem; }
+.site-branding-layer .button { border-radius: var(--frontend-button-radius, 999px); }
+.brand-name-custom { max-width: 15rem; letter-spacing: -0.045em; }
+.brand-editor-grid { display: grid; gap: 1rem; margin-bottom: 1rem; }
+.brand-identity-card { display: grid; align-content: start; }
+.brand-logo-preview { display: grid; min-height: 145px; margin-bottom: 0.75rem; place-items: center; overflow: hidden; border: 1px dashed rgba(44, 44, 44, 0.22); border-radius: 1.1rem; background: #f4eee2; }
+.brand-logo-preview img { width: 118px; height: 118px; object-fit: contain; }
+.brand-logo-preview > div { display: grid; gap: 0.42rem; place-items: center; color: #6c695f; font-size: 0.73rem; font-weight: 700; }
+.brand-color-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.brand-color-grid input[type="color"] { width: 100%; min-height: 43px; padding: 0.18rem; cursor: pointer; }
+.button-shape-preview { display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; padding: 1rem; border: 1px dashed rgba(44, 44, 44, 0.2); background: #f7f3eb; color: #5c5a53; font-size: 0.76rem; font-weight: 700; }
+.button-shape-preview button { border: 0; background: var(--terracotta); color: var(--cream); padding: 0.68rem 0.8rem; font: inherit; font-weight: 800; }
+.button-shape-preview.shape-pill, .button-shape-preview.shape-pill button { border-radius: 999px; }
+.button-shape-preview.shape-soft, .button-shape-preview.shape-soft button { border-radius: 1rem; }
+.button-shape-preview.shape-square, .button-shape-preview.shape-square button { border-radius: 0.24rem; }
+
 .reveal-up { animation: floatIn 680ms var(--ease-out) both; }
 .hero-visual { animation-delay: 100ms; }
 @keyframes floatIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -236,6 +254,7 @@ h1 span { color: var(--terracotta); font-style: italic; font-variation-settings:
   .section-pad { padding: 6.5rem 0; }
   .hero-section { padding: 5.4rem 0 3.7rem; }
   .hero-actions .button { padding-inline: 1.35rem; }
+  .brand-editor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .section-heading { grid-template-columns: 1.2fr 0.8fr; align-items: end; gap: 2rem; margin-bottom: 3.1rem; }
   .initiative-grid { grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
   .initiative-card { min-height: 465px; }

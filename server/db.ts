@@ -6,6 +6,8 @@ import {
   heroSlides,
   impactMetrics,
   InsertUser,
+  serviceCards,
+  siteAppearance,
   siteUpdates,
   teamMembers,
   users,
@@ -13,6 +15,7 @@ import {
 import { canCreateStaffAccount, isPrimaryAdministrator, normalizeEmail } from "./cms";
 import { DEFAULT_IMPACT_METRICS, type ImpactMetricKey } from "./impact";
 import { DEFAULT_TEAM_MEMBERS } from "./team";
+import { DEFAULT_APPEARANCE, DEFAULT_SERVICE_CARDS, type AppearanceMode } from "./appearance";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -72,26 +75,46 @@ export async function getUserByOpenId(openId: string) {
 export async function getPublicContent() {
   const db = await requireDb();
   const now = new Date();
-  const [slides, upcomingEvents, updates, metrics, members] = await Promise.all([
+  const [slides, upcomingEvents, updates, metrics, members, appearanceRows, cards] = await Promise.all([
     db.select().from(heroSlides).where(eq(heroSlides.isPublished, true)).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).where(and(eq(events.isPublished, true), gte(events.startsAt, now))).orderBy(asc(events.startsAt)).limit(6),
     db.select().from(siteUpdates).where(eq(siteUpdates.status, "published")).orderBy(desc(siteUpdates.createdAt)).limit(3),
     db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
     db.select().from(teamMembers).where(eq(teamMembers.isPublished, true)).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
+    db.select().from(siteAppearance).limit(1),
+    db.select().from(serviceCards).orderBy(asc(serviceCards.position), asc(serviceCards.id)),
   ]);
-  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS };
+  return { slides, events: upcomingEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS };
 }
 
 export async function getAdminContent() {
   const db = await requireDb();
-  const [slides, allEvents, updates, metrics, members] = await Promise.all([
+  const [slides, allEvents, updates, metrics, members, appearanceRows, cards] = await Promise.all([
     db.select().from(heroSlides).orderBy(asc(heroSlides.position), asc(heroSlides.id)),
     db.select().from(events).orderBy(asc(events.startsAt)),
     db.select().from(siteUpdates).orderBy(desc(siteUpdates.updatedAt)),
     db.select().from(impactMetrics).orderBy(asc(impactMetrics.position), asc(impactMetrics.id)),
     db.select().from(teamMembers).orderBy(asc(teamMembers.position), asc(teamMembers.id)),
+    db.select().from(siteAppearance).limit(1),
+    db.select().from(serviceCards).orderBy(asc(serviceCards.position), asc(serviceCards.id)),
   ]);
-  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS };
+  return { slides, events: allEvents, updates, impactMetrics: metrics.length ? metrics : DEFAULT_IMPACT_METRICS, teamMembers: members.length ? members : DEFAULT_TEAM_MEMBERS, appearance: appearanceRows[0] ?? DEFAULT_APPEARANCE, serviceCards: cards.length ? cards : DEFAULT_SERVICE_CARDS };
+}
+
+export type AppearanceInput = {
+  pageMode: AppearanceMode; pageColor: string; pageGradientFrom: string; pageGradientTo: string; pageImageUrl?: string; pageImageKey?: string; pageImageBlur: number; pageOverlayOpacity: number;
+  headerMode: AppearanceMode; headerColor: string; headerGradientFrom: string; headerGradientTo: string; headerImageUrl?: string; headerImageKey?: string; headerImageBlur: number; headerOverlayOpacity: number;
+  footerMode: AppearanceMode; footerColor: string; footerGradientFrom: string; footerGradientTo: string; footerImageUrl?: string; footerImageKey?: string; footerImageBlur: number; footerOverlayOpacity: number;
+};
+
+export async function upsertSiteAppearance(input: AppearanceInput, updatedBy: number) {
+  const db = await requireDb();
+  await db.insert(siteAppearance).values({ id: 1, ...input, updatedBy }).onDuplicateKeyUpdate({ set: { ...input, updatedBy } });
+}
+
+export async function upsertServiceCards(cards: Array<{ cardKey: string; imageUrl: string; imageKey?: string; hoverImageUrl: string; hoverImageKey?: string; imageAlt: string; position: number }>, updatedBy: number) {
+  const db = await requireDb();
+  await Promise.all(cards.map((card) => db.insert(serviceCards).values({ ...card, updatedBy }).onDuplicateKeyUpdate({ set: { imageUrl: card.imageUrl, imageKey: card.imageKey, hoverImageUrl: card.hoverImageUrl, hoverImageKey: card.hoverImageKey, imageAlt: card.imageAlt, position: card.position, updatedBy } })));
 }
 
 export async function upsertImpactMetrics(metrics: Array<{ metricKey: ImpactMetricKey; value: number; label: string; position: number }>, updatedBy: number) {

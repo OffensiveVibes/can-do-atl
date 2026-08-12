@@ -17,6 +17,8 @@ import {
   getPublicContent,
   listInvites,
   revokeInvite,
+  upsertServiceCards,
+  upsertSiteAppearance,
   updateEvent,
   updateHeroSlide,
   upsertImpactMetrics,
@@ -24,6 +26,7 @@ import {
   updateTeamMember,
 } from "../db";
 import { IMPACT_METRIC_KEYS } from "../impact";
+import { APPEARANCE_MODES, SERVICE_CARD_KEYS } from "../appearance";
 import { editorProcedure, primaryAdministratorProcedure } from "../authorization";
 import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { storagePut } from "../storage";
@@ -88,6 +91,16 @@ const editorTeamMemberInput = z.object({
   position: z.number().int().min(0).max(999),
   isPublished: z.boolean(),
 });
+const colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex color.");
+const managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
+const optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || undefined);
+const appearanceInput = z.object({
+  pageMode: z.enum(APPEARANCE_MODES), pageColor: colorInput, pageGradientFrom: colorInput, pageGradientTo: colorInput, pageImageUrl: optionalImageUrl, pageImageKey: optionalText, pageImageBlur: z.number().int().min(0).max(24), pageOverlayOpacity: z.number().int().min(0).max(92),
+  headerMode: z.enum(APPEARANCE_MODES), headerColor: colorInput, headerGradientFrom: colorInput, headerGradientTo: colorInput, headerImageUrl: optionalImageUrl, headerImageKey: optionalText, headerImageBlur: z.number().int().min(0).max(24), headerOverlayOpacity: z.number().int().min(0).max(92),
+  footerMode: z.enum(APPEARANCE_MODES), footerColor: colorInput, footerGradientFrom: colorInput, footerGradientTo: colorInput, footerImageUrl: optionalImageUrl, footerImageKey: optionalText, footerImageBlur: z.number().int().min(0).max(24), footerOverlayOpacity: z.number().int().min(0).max(92),
+});
+const serviceCardInput = z.object({ cardKey: z.enum(SERVICE_CARD_KEYS), imageUrl: managedImageUrl, imageKey: optionalText, hoverImageUrl: managedImageUrl, hoverImageKey: optionalText, imageAlt: z.string().trim().min(3).max(255), position: z.number().int().min(0).max(2) });
+const serviceCardsInput = z.object({ cards: z.array(serviceCardInput).length(3).superRefine((cards, ctx) => { const keys = cards.map((card) => card.cardKey); if (new Set(keys).size !== SERVICE_CARD_KEYS.length || !SERVICE_CARD_KEYS.every((key) => keys.includes(key))) ctx.addIssue({ code: "custom", message: "Provide each service card exactly once." }); }) });
 
 function parseImageDataUrl(dataUrl: string) {
   const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);
@@ -114,6 +127,8 @@ export const contentRouter = router({
   createTeamMember: editorProcedure.input(editorTeamMemberInput).mutation(({ ctx, input }) => createTeamMember({ ...input, createdBy: ctx.user.id })),
   updateTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive(), data: editorTeamMemberInput })).mutation(({ input }) => updateTeamMember(input.id, input.data)),
   deleteTeamMember: editorProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => deleteTeamMember(input.id)),
+  updateAppearance: editorProcedure.input(appearanceInput).mutation(({ ctx, input }) => upsertSiteAppearance(input, ctx.user.id)),
+  updateServiceCards: editorProcedure.input(serviceCardsInput).mutation(({ ctx, input }) => upsertServiceCards(input.cards, ctx.user.id)),
   uploadHeroImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);
     return storagePut(`hero-slides/${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
@@ -121,6 +136,14 @@ export const contentRouter = router({
   uploadTeamImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000) })).mutation(async ({ ctx, input }) => {
     const image = parseImageDataUrl(input.dataUrl);
     return storagePut(`team-members/${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
+  }),
+  uploadAppearanceImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000), surface: z.enum(["page", "header", "footer"]) })).mutation(async ({ ctx, input }) => {
+    const image = parseImageDataUrl(input.dataUrl);
+    return storagePut(`appearance/${input.surface}-${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
+  }),
+  uploadServiceCardImage: editorProcedure.input(z.object({ dataUrl: z.string().max(6_300_000), cardKey: z.enum(SERVICE_CARD_KEYS), state: z.enum(["default", "hover"]) })).mutation(async ({ ctx, input }) => {
+    const image = parseImageDataUrl(input.dataUrl);
+    return storagePut(`service-cards/${input.cardKey}-${input.state}-${ctx.user.id}-${Date.now()}.${image.extension}`, image.bytes, image.contentType);
   }),
 });
 

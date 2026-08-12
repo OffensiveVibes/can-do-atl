@@ -57,3 +57,18 @@
 - [x] Add staff tools to create, edit, reorder, publish, and upload images for team profiles.
 - [x] Seed three clearly marked placeholder profiles that administrators can replace.
 - [x] Verify public profile expansion, optional administrator-supplied social-link rendering, and protected team management.
+
+## Hosting handoff guidance
+
+- [x] Document a no-cost hosting path and the migration requirements for handing the full-stack site to a non-Manus collaborator.
+
+## Visual customization and handoff refinement
+
+- [x] Move the public Staff sign in entry from the top of the homepage to the footer and verify it on the public page.
+- [x] Add secure database-backed appearance settings for the page, header, and footer backgrounds, including colors, gradients, optional images, and image-overlay blur.
+- [x] Add protected service-card settings for primary and hover images in the Care is practical section.
+- [x] Add staff controls to upload and manage appearance backgrounds, overlay blur, and service-card images.
+- [x] Improve responsive typography, word spacing, line height, and navigation spacing across public pages.
+- [x] Add placeholder hover images for all three Care is practical cards.
+- [x] Write a step-by-step Cloudflare + Supabase external handoff guide for a non-Manus collaborator.
+- [x] Verify responsive layout, protected appearance APIs, and the Care is practical pointer-based image switch.

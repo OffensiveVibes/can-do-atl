@@ -122,6 +122,55 @@ export const teamMembers = mysqlTable(
   (table) => [index("teamMembers_public_position_idx").on(table.isPublished, table.position)],
 );
 
+/** Singleton visual preferences for the page canvas, header, and footer. */
+export const siteAppearance = mysqlTable("siteAppearance", {
+  id: int("id").primaryKey(),
+  pageMode: varchar("pageMode", { length: 16 }).notNull(),
+  pageColor: varchar("pageColor", { length: 32 }).notNull(),
+  pageGradientFrom: varchar("pageGradientFrom", { length: 32 }).notNull(),
+  pageGradientTo: varchar("pageGradientTo", { length: 32 }).notNull(),
+  pageImageUrl: varchar("pageImageUrl", { length: 512 }),
+  pageImageKey: varchar("pageImageKey", { length: 512 }),
+  pageImageBlur: int("pageImageBlur").default(0).notNull(),
+  pageOverlayOpacity: int("pageOverlayOpacity").default(24).notNull(),
+  headerMode: varchar("headerMode", { length: 16 }).notNull(),
+  headerColor: varchar("headerColor", { length: 32 }).notNull(),
+  headerGradientFrom: varchar("headerGradientFrom", { length: 32 }).notNull(),
+  headerGradientTo: varchar("headerGradientTo", { length: 32 }).notNull(),
+  headerImageUrl: varchar("headerImageUrl", { length: 512 }),
+  headerImageKey: varchar("headerImageKey", { length: 512 }),
+  headerImageBlur: int("headerImageBlur").default(0).notNull(),
+  headerOverlayOpacity: int("headerOverlayOpacity").default(8).notNull(),
+  footerMode: varchar("footerMode", { length: 16 }).notNull(),
+  footerColor: varchar("footerColor", { length: 32 }).notNull(),
+  footerGradientFrom: varchar("footerGradientFrom", { length: 32 }).notNull(),
+  footerGradientTo: varchar("footerGradientTo", { length: 32 }).notNull(),
+  footerImageUrl: varchar("footerImageUrl", { length: 512 }),
+  footerImageKey: varchar("footerImageKey", { length: 512 }),
+  footerImageBlur: int("footerImageBlur").default(0).notNull(),
+  footerOverlayOpacity: int("footerOverlayOpacity").default(36).notNull(),
+  updatedBy: int("updatedBy").notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Image pairs used by the three public Care is practical service cards. */
+export const serviceCards = mysqlTable(
+  "serviceCards",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    cardKey: varchar("cardKey", { length: 64 }).notNull().unique(),
+    imageUrl: varchar("imageUrl", { length: 512 }).notNull(),
+    imageKey: varchar("imageKey", { length: 512 }),
+    hoverImageUrl: varchar("hoverImageUrl", { length: 512 }).notNull(),
+    hoverImageKey: varchar("hoverImageKey", { length: 512 }),
+    imageAlt: varchar("imageAlt", { length: 255 }).notNull(),
+    position: int("position").default(0).notNull(),
+    updatedBy: int("updatedBy").notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => [index("serviceCards_position_idx").on(table.position)],
+);
+
 /** Primary-administrator managed allow-list for additional administrators. */
 export const adminInvites = mysqlTable(
   "adminInvites",
@@ -143,4 +192,6 @@ export type Event = typeof events.$inferSelect;
 export type HeroSlide = typeof heroSlides.$inferSelect;
 export type ImpactMetric = typeof impactMetrics.$inferSelect;
 export type TeamMember = typeof teamMembers.$inferSelect;
+export type SiteAppearance = typeof siteAppearance.$inferSelect;
+export type ServiceCard = typeof serviceCards.$inferSelect;
 export type AdminInvite = typeof adminInvites.$inferSelect;

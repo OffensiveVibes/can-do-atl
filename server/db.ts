@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gte } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import {
   adminAccessRequests,
   adminInvites,
@@ -21,10 +22,12 @@ import { DEFAULT_APPEARANCE, DEFAULT_SERVICE_CARDS, type AppearanceMode, type Bu
 import { SITE_TEXT_DEFAULTS, type SiteTextKey, type SiteTextValues } from "@shared/siteText";
 
 let _db: ReturnType<typeof drizzle> | null = null;
+let _client: postgres.Sql | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
-    _db = drizzle(process.env.DATABASE_URL);
+    _client = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
+    _db = drizzle(_client);
   }
   return _db;
 }
@@ -66,7 +69,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   values.lastSignedIn = user.lastSignedIn ?? new Date();
   updateSet.lastSignedIn = values.lastSignedIn;
 
-  await db.insert(users).values(values).onDuplicateKeyUpdate({ set: updateSet });
+  await db.insert(users).values(values).onConflictDoUpdate({ target: users.openId, set: updateSet });
 }
 
 export async function getUserByOpenId(openId: string) {
@@ -117,22 +120,22 @@ export type AppearanceInput = {
 
 export async function upsertSiteAppearance(input: AppearanceInput, updatedBy: number) {
   const db = await requireDb();
-  await db.insert(siteAppearance).values({ id: 1, ...input, updatedBy }).onDuplicateKeyUpdate({ set: { ...input, updatedBy } });
+  await db.insert(siteAppearance).values({ id: 1, ...input, updatedBy }).onConflictDoUpdate({ target: siteAppearance.id, set: { ...input, updatedBy } });
 }
 
 export async function upsertSiteText(entries: Array<{ textKey: SiteTextKey; value: string }>, updatedBy: number) {
   const db = await requireDb();
-  await Promise.all(entries.map((entry) => db.insert(siteText).values({ ...entry, updatedBy }).onDuplicateKeyUpdate({ set: { value: entry.value, updatedBy } })));
+  await Promise.all(entries.map((entry) => db.insert(siteText).values({ ...entry, updatedBy }).onConflictDoUpdate({ target: siteText.textKey, set: { value: entry.value, updatedBy } })));
 }
 
 export async function upsertServiceCards(cards: Array<{ cardKey: string; imageUrl: string; imageKey?: string; hoverImageUrl: string; hoverImageKey?: string; imageAlt: string; position: number }>, updatedBy: number) {
   const db = await requireDb();
-  await Promise.all(cards.map((card) => db.insert(serviceCards).values({ ...card, updatedBy }).onDuplicateKeyUpdate({ set: { imageUrl: card.imageUrl, imageKey: card.imageKey, hoverImageUrl: card.hoverImageUrl, hoverImageKey: card.hoverImageKey, imageAlt: card.imageAlt, position: card.position, updatedBy } })));
+  await Promise.all(cards.map((card) => db.insert(serviceCards).values({ ...card, updatedBy }).onConflictDoUpdate({ target: serviceCards.cardKey, set: { imageUrl: card.imageUrl, imageKey: card.imageKey, hoverImageUrl: card.hoverImageUrl, hoverImageKey: card.hoverImageKey, imageAlt: card.imageAlt, position: card.position, updatedBy } })));
 }
 
 export async function upsertImpactMetrics(metrics: Array<{ metricKey: ImpactMetricKey; value: number; label: string; position: number }>, updatedBy: number) {
   const db = await requireDb();
-  await Promise.all(metrics.map((metric) => db.insert(impactMetrics).values({ ...metric, updatedBy }).onDuplicateKeyUpdate({
+  await Promise.all(metrics.map((metric) => db.insert(impactMetrics).values({ ...metric, updatedBy }).onConflictDoUpdate({ target: impactMetrics.metricKey,
     set: { value: metric.value, label: metric.label, position: metric.position, updatedBy },
   })));
 }
@@ -222,7 +225,7 @@ export async function listInvites() {
 export async function createOrRefreshInvite(email: string, invitedBy: number) {
   const db = await requireDb();
   const normalizedEmail = normalizeEmail(email);
-  await db.insert(adminInvites).values({ email: normalizedEmail, invitedBy, status: "pending" }).onDuplicateKeyUpdate({ set: { status: "pending", invitedBy, invitedAt: new Date(), acceptedAt: null } });
+  await db.insert(adminInvites).values({ email: normalizedEmail, invitedBy, status: "pending" }).onConflictDoUpdate({ target: adminInvites.email, set: { status: "pending", invitedBy, invitedAt: new Date(), acceptedAt: null } });
 }
 
 export async function revokeInvite(id: number) {
@@ -243,7 +246,7 @@ export async function acceptInviteForUser(email: string, userId: number) {
 export async function createOrRefreshAccessRequest(email: string, note?: string) {
   const db = await requireDb();
   const normalizedEmail = normalizeEmail(email);
-  await db.insert(adminAccessRequests).values({ email: normalizedEmail, note, status: "pending" }).onDuplicateKeyUpdate({
+  await db.insert(adminAccessRequests).values({ email: normalizedEmail, note, status: "pending" }).onConflictDoUpdate({ target: adminAccessRequests.email,
     set: { note, status: "pending", requestedAt: new Date(), decidedBy: null, decidedAt: null },
   });
 }
@@ -258,7 +261,7 @@ export async function approveAccessRequest(id: number, decidedBy: number) {
   const request = await db.select().from(adminAccessRequests).where(eq(adminAccessRequests.id, id)).limit(1);
   if (!request[0]) throw new Error("That administrator request no longer exists.");
   await db.transaction(async (tx) => {
-    await tx.insert(adminInvites).values({ email: request[0].email, invitedBy: decidedBy, status: "pending" }).onDuplicateKeyUpdate({
+    await tx.insert(adminInvites).values({ email: request[0].email, invitedBy: decidedBy, status: "pending" }).onConflictDoUpdate({ target: adminInvites.email,
       set: { status: "pending", invitedBy: decidedBy, invitedAt: new Date(), acceptedAt: null },
     });
     await tx.update(adminAccessRequests).set({ status: "approved", decidedBy, decidedAt: new Date() }).where(eq(adminAccessRequests.id, id));

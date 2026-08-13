@@ -1,3 +1,7 @@
+CREATE TYPE "access_request_status" AS ENUM ('pending', 'approved', 'denied');--> statement-breakpoint
+CREATE TYPE "invite_status" AS ENUM ('pending', 'accepted', 'revoked');--> statement-breakpoint
+CREATE TYPE "publish_status" AS ENUM ('draft', 'published');--> statement-breakpoint
+CREATE TYPE "user_role" AS ENUM ('user', 'admin');--> statement-breakpoint
 CREATE TABLE "adminAccessRequests" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" varchar(320) NOT NULL,

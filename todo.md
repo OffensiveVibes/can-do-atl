@@ -107,3 +107,9 @@
 - [x] Verify ordering, request submission, staff decisions, and authorization protections.
 - [x] Verify a reversible team-profile reorder through the authenticated staff UI and public About page.
 - [x] Verify the unauthenticated sign-in guidance and public administrator-request form render correctly.
+
+## Vercel migration assessment
+
+- [x] Audit Manus-specific authentication, database, storage, and runtime dependencies against Vercel deployment requirements.
+- [x] Write a step-by-step Vercel migration guide that preserves public content, staff management, uploads, and invite-only access.
+- [x] Add source portability notes and validate the current project build before handing off the migration path.

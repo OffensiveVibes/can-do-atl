@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build": "vite build && pnpm build:api",
+    "build:api": "esbuild server/app.ts --platform=node --packages=external --bundle --format=esm --outfile=api/trpc/[...trpc].js",
     "start": "vercel dev",
     "check": "tsc --noEmit",
     "format": "prettier --write .",

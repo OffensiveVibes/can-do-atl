@@ -113,3 +113,8 @@
 - [x] Audit Manus-specific authentication, database, storage, and runtime dependencies against Vercel deployment requirements.
 - [x] Write a step-by-step Vercel migration guide that preserves public content, staff management, uploads, and invite-only access.
 - [x] Add source portability notes and validate the current project build before handing off the migration path.
+
+## Vercel API packaging repair
+
+- [x] Bundle the tRPC Express application with its server dependencies so the Vercel Function does not import unavailable source modules at runtime.
+- [ ] Verify the repaired preview returns public team content and then investigate any remaining database or authorization error.

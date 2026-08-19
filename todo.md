@@ -123,7 +123,7 @@
 
 - [x] Collect the current public image assets into a downloadable package for the Can Do ATL team.
 - [x] Remove legacy Manus managed-storage image URLs from the Vercel seed data so new Supabase uploads become the single image source.
-- [ ] Provide simple instructions for re-uploading the images through the repaired Vercel staff workspace.
+- [x] Provide simple instructions for re-uploading the images through the repaired Vercel staff workspace.
 
 ## Legacy seed-pipeline cleanup
 

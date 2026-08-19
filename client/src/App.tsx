@@ -13,7 +13,7 @@ import { useEffect } from "react";
 const defaultBranding = {
   siteName: "Can Do ATL",
   tabTitle: "Can Do ATL — Student-led mutual aid",
-  logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png",
+  logoUrl: "",
   logoAlt: "Atlanta pencil surrounded by grocery essentials",
   primaryColor: "#3A5A40",
   accentColor: "#BC6C25",
@@ -33,7 +33,8 @@ function BrandingLayer({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.title = appearance.tabTitle;
     const icon = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (icon) icon.href = appearance.logoUrl;
+    if (icon && appearance.logoUrl) icon.href = appearance.logoUrl;
+    if (icon && !appearance.logoUrl) icon.removeAttribute("href");
     const root = document.documentElement;
     root.style.setProperty("--green", appearance.primaryColor);
     root.style.setProperty("--terracotta", appearance.accentColor);

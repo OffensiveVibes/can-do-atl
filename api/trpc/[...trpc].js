@@ -263,7 +263,7 @@ var SERVICE_CARD_KEYS = ["food_drives", "clothing_closet", "community_outreach"]
 var DEFAULT_APPEARANCE = {
   siteName: "Can Do ATL",
   tabTitle: "Can Do ATL \u2014 Student-led mutual aid",
-  logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png",
+  logoUrl: "",
   logoKey: null,
   logoAlt: "Atlanta pencil surrounded by grocery essentials",
   primaryColor: "#3A5A40",
@@ -297,9 +297,9 @@ var DEFAULT_APPEARANCE = {
   footerOverlayOpacity: 36
 };
 var DEFAULT_SERVICE_CARDS = [
-  { cardKey: "food_drives", imageUrl: "/manus-storage/cando-food-drive_871f5113.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-food-drive_149f6ede.png", hoverImageKey: null, imageAlt: "Students organizing food drive supplies", position: 0 },
-  { cardKey: "clothing_closet", imageUrl: "/manus-storage/cando-clothing-closet_0be9460f.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-clothing-closet_fd9db982.png", hoverImageKey: null, imageAlt: "Students organizing clothing donations", position: 1 },
-  { cardKey: "community_outreach", imageUrl: "/manus-storage/cando-outreach_ef7007e4.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-outreach_830f5058.png", hoverImageKey: null, imageAlt: "Students sharing community care kits", position: 2 }
+  { cardKey: "food_drives", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students organizing food drive supplies", position: 0 },
+  { cardKey: "clothing_closet", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students organizing clothing donations", position: 1 },
+  { cardKey: "community_outreach", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students sharing community care kits", position: 2 }
 ];
 
 // shared/siteText.ts
@@ -657,7 +657,7 @@ var impactMetricsInput = z.object({
 });
 var optionalUrl = z.string().trim().url().max(512).optional().or(z.literal("")).transform((value) => value || void 0);
 var colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex color.");
-var managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
+var managedImageUrl = z.string().trim().min(1).max(512).url("Use an uploaded Supabase image URL.");
 var optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || void 0);
 var editorTeamMemberInput = z.object({
   name: z.string().trim().min(2).max(120),

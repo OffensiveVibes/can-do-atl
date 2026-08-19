@@ -84,7 +84,7 @@ const impactMetricsInput = z.object({
 });
 const optionalUrl = z.string().trim().url().max(512).optional().or(z.literal("")).transform((value) => value || undefined);
 const colorInput = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a six-digit hex color.");
-const managedImageUrl = z.string().trim().min(1).max(512).refine((value) => value.startsWith("/manus-storage/") || /^https?:\/\//.test(value), "Use an uploaded image or a secure image URL.");
+const managedImageUrl = z.string().trim().min(1).max(512).url("Use an uploaded Supabase image URL.");
 const optionalImageUrl = managedImageUrl.optional().or(z.literal("")).transform((value) => value || undefined);
 const editorTeamMemberInput = z.object({
   name: z.string().trim().min(2).max(120),

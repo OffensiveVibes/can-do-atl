@@ -48,7 +48,7 @@ type TeamMemberItem = { id: number; name: string; role: string; bio: string | nu
 type AppearanceItem = { siteName: string; tabTitle: string; logoUrl?: string | null; logoKey?: string | null; logoAlt: string; primaryColor: string; accentColor: string; highlightColor: string; inkColor: string; buttonShape: "pill" | "soft" | "square"; pageMode: "solid" | "gradient" | "image"; pageColor: string; pageGradientFrom: string; pageGradientTo: string; pageImageUrl?: string | null; pageImageKey?: string | null; pageImageBlur: number; pageOverlayOpacity: number; headerMode: "solid" | "gradient" | "image"; headerColor: string; headerGradientFrom: string; headerGradientTo: string; headerImageUrl?: string | null; headerImageKey?: string | null; headerImageBlur: number; headerOverlayOpacity: number; footerMode: "solid" | "gradient" | "image"; footerColor: string; footerGradientFrom: string; footerGradientTo: string; footerImageUrl?: string | null; footerImageKey?: string | null; footerImageBlur: number; footerOverlayOpacity: number };
 type ServiceCardItem = { cardKey: "food_drives" | "clothing_closet" | "community_outreach"; imageUrl: string; imageKey?: string | null; hoverImageUrl: string; hoverImageKey?: string | null; imageAlt: string; position: number };
 
-const primaryImage = "/manus-storage/cando-hero-atl_b12524b6.png";
+const primaryImage = "";
 
 function toLocalInputValue(value?: Date | null) {
   if (!value) return "";

@@ -53,15 +53,15 @@ describe("content.createTeamMember", () => {
     }));
   });
 
-  it("accepts an uploaded managed-storage image path when saving a profile", async () => {
+  it("accepts an uploaded Supabase image URL when saving a profile", async () => {
     createTeamMember.mockClear();
     const caller = contentRouter.createCaller(contextFor("mary2000skid@gmail.com", "admin"));
     await expect(caller.createTeamMember({
       ...profileInput,
-      imageUrl: "/manus-storage/team-members/profile-photo.png",
+      imageUrl: "https://dpnltewsangkhimxzzdm.supabase.co/storage/v1/object/public/site-media/team-members/profile-photo.png",
       imageKey: "team-members/profile-photo.png",
     })).resolves.toBeUndefined();
-    expect(createTeamMember).toHaveBeenCalledWith(expect.objectContaining({ imageUrl: "/manus-storage/team-members/profile-photo.png" }));
+    expect(createTeamMember).toHaveBeenCalledWith(expect.objectContaining({ imageUrl: "https://dpnltewsangkhimxzzdm.supabase.co/storage/v1/object/public/site-media/team-members/profile-photo.png" }));
   });
 
   it("updates an existing profile with an uploaded photo, bio, and complete social links", async () => {
@@ -71,7 +71,7 @@ describe("content.createTeamMember", () => {
       ...profileInput,
       name: "Jordan Reed",
       bio: "Jordan coordinates campus clothing-closet volunteers and partner outreach.",
-      imageUrl: "/manus-storage/team-members/jordan-reed.png",
+      imageUrl: "https://dpnltewsangkhimxzzdm.supabase.co/storage/v1/object/public/site-media/team-members/jordan-reed.png",
       imageKey: "team-members/jordan-reed.png",
       linkedinUrl: "https://www.linkedin.com/in/jordan-reed",
       instagramUrl: "https://www.instagram.com/jordanreed",
@@ -79,7 +79,7 @@ describe("content.createTeamMember", () => {
     };
     await expect(caller.updateTeamMember({ id: 9, data })).resolves.toBeUndefined();
     expect(updateTeamMember).toHaveBeenCalledWith(9, expect.objectContaining({
-      imageUrl: "/manus-storage/team-members/jordan-reed.png",
+      imageUrl: "https://dpnltewsangkhimxzzdm.supabase.co/storage/v1/object/public/site-media/team-members/jordan-reed.png",
       bio: data.bio,
       linkedinUrl: data.linkedinUrl,
       websiteUrl: data.websiteUrl,

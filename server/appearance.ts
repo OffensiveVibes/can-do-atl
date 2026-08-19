@@ -8,7 +8,7 @@ export type ServiceCardKey = (typeof SERVICE_CARD_KEYS)[number];
 export const DEFAULT_APPEARANCE = {
   siteName: "Can Do ATL",
   tabTitle: "Can Do ATL — Student-led mutual aid",
-  logoUrl: "/manus-storage/cando-atlanta-pencil-logo_ae816652.png",
+  logoUrl: "",
   logoKey: null,
   logoAlt: "Atlanta pencil surrounded by grocery essentials",
   primaryColor: "#3A5A40",
@@ -43,7 +43,7 @@ export const DEFAULT_APPEARANCE = {
 };
 
 export const DEFAULT_SERVICE_CARDS = [
-  { cardKey: "food_drives", imageUrl: "/manus-storage/cando-food-drive_871f5113.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-food-drive_149f6ede.png", hoverImageKey: null, imageAlt: "Students organizing food drive supplies", position: 0 },
-  { cardKey: "clothing_closet", imageUrl: "/manus-storage/cando-clothing-closet_0be9460f.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-clothing-closet_fd9db982.png", hoverImageKey: null, imageAlt: "Students organizing clothing donations", position: 1 },
-  { cardKey: "community_outreach", imageUrl: "/manus-storage/cando-outreach_ef7007e4.png", imageKey: null, hoverImageUrl: "/manus-storage/cando-hover-outreach_830f5058.png", hoverImageKey: null, imageAlt: "Students sharing community care kits", position: 2 },
+  { cardKey: "food_drives", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students organizing food drive supplies", position: 0 },
+  { cardKey: "clothing_closet", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students organizing clothing donations", position: 1 },
+  { cardKey: "community_outreach", imageUrl: "", imageKey: null, hoverImageUrl: "", hoverImageKey: null, imageAlt: "Students sharing community care kits", position: 2 },
 ];

@@ -118,3 +118,9 @@
 
 - [x] Bundle the tRPC Express application with its server dependencies so the Vercel Function does not import unavailable source modules at runtime.
 - [ ] Verify the repaired preview returns public team content and then investigate any remaining database or authorization error.
+
+## Legacy-image handoff for Vercel migration
+
+- [ ] Collect the current public image assets into a downloadable package for the Can Do ATL team.
+- [ ] Remove legacy Manus managed-storage image URLs from the Vercel seed data so new Supabase uploads become the single image source.
+- [ ] Provide simple instructions for re-uploading the images through the repaired Vercel staff workspace.

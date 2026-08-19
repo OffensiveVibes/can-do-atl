@@ -26,7 +26,9 @@ let _client: postgres.Sql | null = null;
 
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
-    _client = postgres(process.env.DATABASE_URL, { max: 1, prepare: false });
+    // Supabase's transaction pooler is reached over TLS in Vercel. Disabling
+    // prepared statements is still required for transaction pooling.
+    _client = postgres(process.env.DATABASE_URL, { max: 1, prepare: false, ssl: "require" });
     _db = drizzle(_client);
   }
   return _db;
